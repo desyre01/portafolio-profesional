@@ -1,72 +1,99 @@
 import React, { useEffect, useState } from "react";
-import Joyride from "react-joyride";
+import { TourProvider, useTour } from "@reactour/tour";
 import axios from "axios";
 
-const TutorialTour = ({ profileId }) => {
-  const [run, setRun] = useState(false);
-  const [steps] = useState([
-    {
-      target: ".create-portfolio-container",
-      content: "Aquí podés crear tu portafolio ingresando tu información personal.",
-    },
-    {
-      target: ".navbar",
-      content: "Este es el menú de navegación para moverte entre secciones.",
-    },
-    {
-      target: ".profile-list",
-      content: "Aquí podés ver todos los perfiles creados en la aplicación.",
-    },
-    {
-      target: ".create-button",
-      content: "Este botón te lleva al formulario para comenzar tu portafolio.",
-    },
-  ]);
+const steps = [
+  {
+    selector: ".personal-info-step",
+    content: "Aquí ingresás tus datos personales, como nombre, correo y profesión.",
+  },
+  {
+    selector: ".education-step",
+    content: "En esta sección añadís tu formación académica.",
+  },
+  {
+    selector: ".experience-step",
+    content: "Aquí podés agregar tu experiencia laboral previa.",
+  },
+  {
+    selector: ".projects-step",
+    content: "Agregá proyectos en los que has trabajado.",
+  },
+  {
+    selector: ".skills-step",
+    content: "Indicá tus habilidades técnicas y blandas.",
+  },
+  {
+    selector: ".languages-step",
+    content: "Agregá los idiomas que manejás y tu nivel.",
+  },
+  {
+    selector: ".references-step",
+    content: "Podés incluir testimonios o referencias de colegas.",
+  },
+  {
+    selector: ".contact-step",
+    content: "Añadí tus redes sociales para que puedan contactarte.",
+  },
+];
+
+const InnerTour = ({ profileId }) => {
+  const { setIsOpen, isOpen, setCurrentStep } = useTour();
 
   useEffect(() => {
-    const checkTutorial = async () => {
+    const seen = localStorage.getItem("hasSeenTutorial");
+
+    if (!seen && profileId) {
+      setTimeout(() => {
+        setIsOpen(true);
+        setCurrentStep(0);
+      }, 1000);
+    }
+  }, [profileId, setIsOpen, setCurrentStep]);
+
+  const handleClose = async () => {
+    setIsOpen(false);
+    localStorage.setItem("hasSeenTutorial", "true");
+
+    if (profileId) {
       try {
-        const res = await axios.get(`http://localhost:5000/api/profile/${profileId}`);
-        if (!res.data.hasSeenTutorial) {
-          setRun(true);
-        }
+        await axios.put(`http://localhost:5000/api/profile/${profileId}/tutorial`, {
+          hasSeenTutorial: true,
+        });
       } catch (err) {
-        console.error("Error al verificar tutorial:", err);
+        console.error("❌ Error al guardar estado del tutorial:", err);
       }
-    };
-
-    checkTutorial();
-  }, [profileId]);
-
-  const handleTourEnd = async () => {
-    setRun(false);
-    try {
-      await axios.put(`http://localhost:5000/api/profile/${profileId}/tutorial`, {
-        hasSeenTutorial: true,
-      });
-    } catch (err) {
-      console.error("Error al guardar estado del tutorial:", err);
     }
   };
 
+  return null; 
+};
+
+const TutorialTour = ({ profileId }) => {
   return (
-    <Joyride
+    <TourProvider
       steps={steps}
-      run={run}
-      continuous
-      showSkipButton
-      showProgress
-      callback={(data) => {
-        if (data.status === "finished" || data.status === "skipped") {
-          handleTourEnd();
-        }
+      onClickClose={() => {
+        localStorage.setItem("hasSeenTutorial", "true");
+      }}
+      afterClose={() => {
+        localStorage.setItem("hasSeenTutorial", "true");
+        axios.put(`http://localhost:5000/api/profile/${profileId}/tutorial`, {
+          hasSeenTutorial: true,
+        }).catch((err) => console.error("❌ Error actualizando tutorial:", err));
       }}
       styles={{
-        options: {
-          zIndex: 10000,
-        },
+        maskWrapper: (base) => ({ ...base, zIndex: 9999 }),
+        popover: (base) => ({
+          ...base,
+          borderRadius: "10px",
+          padding: "20px",
+          maxWidth: "350px",
+        }),
       }}
-    />
+    >
+      <InnerTour profileId={profileId} />
+    </TourProvider>
   );
 };
 
