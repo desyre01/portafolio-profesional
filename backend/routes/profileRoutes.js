@@ -25,7 +25,7 @@ const {
   updateReferenceInProfile,
   deleteReferenceFromProfile,
   updateSocialsInProfile,
-  updateHasSeenTutorial, 
+  markTutorialAsSeen, // ✅ el nombre correcto
 } = require("../controllers/profileController");
 
 const router = express.Router();
@@ -119,7 +119,6 @@ router.delete("/:id/references/:refId", deleteReferenceFromProfile);
 router.put("/:id/socials", updateSocialsInProfile);
 
 // 🚀 Tutorial Interactivo
-router.put("/:id/tutorial", updateHasSeenTutorial); 
+router.put("/:id/tutorial", markTutorialAsSeen);
 
 module.exports = router;
-
