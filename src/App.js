@@ -13,6 +13,8 @@ import SkillsForm from "./components/SkillsForm";
 import ContactForm from "./components/ContactForm";
 import TutorialTour from "./components/TutorialTour";
 import ChatbotWidget from "./components/ChatbotWidget";
+import LanguagesForm from "./components/LanguagesForm";
+import ReferencesForm from "./components/ReferencesForm";
 
 function App() {
   const profileId = localStorage.getItem("profileId");
@@ -33,10 +35,11 @@ function App() {
         <Route path="/projects" element={<ProjectForm />} />
         <Route path="/skills" element={<SkillsForm />} />
         <Route path="/contact" element={<ContactForm />} />
+        <Route path="/languages" element={<LanguagesForm />} />
+        <Route path="/references" element={<ReferencesForm />} />
       </Routes>
 
       <ChatbotWidget />
-
       <Footer />
     </Router>
   );
