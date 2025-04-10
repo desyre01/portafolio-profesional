@@ -25,12 +25,12 @@ const {
   updateReferenceInProfile,
   deleteReferenceFromProfile,
   updateSocialsInProfile,
-  markTutorialAsSeen, // ✅ el nombre correcto
+  markTutorialAsSeen,
 } = require("../controllers/profileController");
 
 const router = express.Router();
 
-// 🧾 Validaciones
+// Validaciones
 const validateProfile = [
   body("name").notEmpty().withMessage("Nombre es requerido"),
   body("profession").notEmpty().withMessage("Profesión es requerida"),
@@ -40,85 +40,85 @@ const validateProfile = [
 ];
 
 const validateEducation = [
-  body("institution").notEmpty().withMessage("Institución es requerida"),
-  body("degree").notEmpty().withMessage("Grado es requerido"),
-  body("startDate").notEmpty().withMessage("Fecha de inicio es requerida"),
-  body("endDate").notEmpty().withMessage("Fecha de fin es requerida"),
+  body("institution").notEmpty(),
+  body("degree").notEmpty(),
+  body("startDate").notEmpty(),
+  body("endDate").notEmpty(),
 ];
 
 const validateExperience = [
-  body("company").notEmpty().withMessage("Nombre de la empresa es requerido"),
-  body("position").notEmpty().withMessage("Cargo es requerido"),
-  body("startDate").notEmpty().withMessage("Fecha de inicio es requerida"),
-  body("endDate").notEmpty().withMessage("Fecha de fin es requerida"),
+  body("company").notEmpty(),
+  body("position").notEmpty(),
+  body("startDate").notEmpty(),
+  body("endDate").notEmpty(),
 ];
 
 const validateProject = [
-  body("name").notEmpty().withMessage("Nombre del proyecto es requerido"),
-  body("description").notEmpty().withMessage("Descripción es requerida"),
-  body("technologies").notEmpty().withMessage("Tecnologías usadas es requerida"),
-  body("link").optional().isURL().withMessage("El enlace debe ser válido"),
+  body("name").notEmpty(),
+  body("description").notEmpty(),
+  body("technologies").notEmpty(),
+  body("link").optional().isURL(),
 ];
 
 const validateSkill = [
-  body("name").notEmpty().withMessage("Nombre de la habilidad es requerido"),
-  body("category").notEmpty().withMessage("Categoría es requerida"),
-  body("level").isInt({ min: 1, max: 5 }).withMessage("El nivel debe estar entre 1 y 5"),
+  body("name").notEmpty(),
+  body("category").notEmpty(),
+  body("level").isInt({ min: 1, max: 5 }),
 ];
 
 const validateLanguage = [
-  body("language").notEmpty().withMessage("El idioma es requerido"),
-  body("level").notEmpty().withMessage("El nivel es requerido"),
+  body("language").notEmpty(),
+  body("level").notEmpty(),
 ];
 
 const validateReference = [
-  body("name").notEmpty().withMessage("El nombre es requerido"),
-  body("relationship").notEmpty().withMessage("La relación es requerida"),
-  body("testimony").notEmpty().withMessage("El testimonio es requerido"),
-  body("imageURL").optional().isURL().withMessage("La URL de imagen debe ser válida"),
+  body("name").notEmpty(),
+  body("relationship").notEmpty(),
+  body("testimony").notEmpty(),
+  body("imageURL").optional().isURL(),
 ];
 
-// 📌 Rutas de Perfil
-router.post("/", validateProfile, createProfile);
+// Rutas de Perfil
+router.post("/", [...validateProfile], createProfile);
 router.get("/", getAllProfiles);
 router.get("/:id", getProfile);
-router.put("/:id", validateProfile, updateProfile);
+router.put("/:id", [...validateProfile], updateProfile);
 router.delete("/:id", deleteProfile);
 
-// 📚 Educación
-router.post("/:id/education", validateEducation, addEducationToProfile);
-router.put("/:id/education/:eduId", validateEducation, updateEducationInProfile);
+// Educación
+router.post("/:id/education", [...validateEducation], addEducationToProfile);
+router.put("/:id/education/:eduId", [...validateEducation], updateEducationInProfile);
 router.delete("/:id/education/:eduId", deleteEducationFromProfile);
 
-// 💼 Experiencia
-router.post("/:id/experience", validateExperience, addExperienceToProfile);
-router.put("/:id/experience/:expId", validateExperience, updateExperienceInProfile);
+// Experiencia
+router.post("/:id/experience", [...validateExperience], addExperienceToProfile);
+router.put("/:id/experience/:expId", [...validateExperience], updateExperienceInProfile);
 router.delete("/:id/experience/:expId", deleteExperienceFromProfile);
 
-// 📁 Proyectos
-router.post("/:id/projects", validateProject, addProjectToProfile);
-router.put("/:id/projects/:projectId", validateProject, updateProjectInProfile);
+// Proyectos
+router.post("/:id/projects", [...validateProject], addProjectToProfile);
+router.put("/:id/projects/:projectId", [...validateProject], updateProjectInProfile);
 router.delete("/:id/projects/:projectId", deleteProjectFromProfile);
 
-// 🛠️ Habilidades
-router.post("/:id/skills", validateSkill, addSkillToProfile);
-router.put("/:id/skills/:skillId", validateSkill, updateSkillInProfile);
+// Habilidades
+router.post("/:id/skills", [...validateSkill], addSkillToProfile);
+router.put("/:id/skills/:skillId", [...validateSkill], updateSkillInProfile);
 router.delete("/:id/skills/:skillId", deleteSkillFromProfile);
 
-// 🌍 Idiomas
-router.post("/:id/languages", validateLanguage, addLanguageToProfile);
-router.put("/:id/languages/:langId", validateLanguage, updateLanguageInProfile);
+// Idiomas
+router.post("/:id/languages", [...validateLanguage], addLanguageToProfile);
+router.put("/:id/languages/:langId", [...validateLanguage], updateLanguageInProfile);
 router.delete("/:id/languages/:langId", deleteLanguageFromProfile);
 
-// 🧾 Referencias
-router.post("/:id/references", validateReference, addReferenceToProfile);
-router.put("/:id/references/:refId", validateReference, updateReferenceInProfile);
+// Referencias
+router.post("/:id/references", [...validateReference], addReferenceToProfile);
+router.put("/:id/references/:refId", [...validateReference], updateReferenceInProfile);
 router.delete("/:id/references/:refId", deleteReferenceFromProfile);
 
-// 📱 Redes Sociales
+// Redes Sociales
 router.put("/:id/socials", updateSocialsInProfile);
 
-// 🚀 Tutorial Interactivo
+// Tutorial
 router.put("/:id/tutorial", markTutorialAsSeen);
 
-module.exports = router;
+module.exports = router; 
