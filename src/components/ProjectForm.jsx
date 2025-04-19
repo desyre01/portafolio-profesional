@@ -1,4 +1,3 @@
-// src/components/ProjectForm.jsx
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
@@ -19,6 +18,8 @@ const ProjectForm = () => {
   const [projects, setProjects] = useState([]);
   const [editMode, setEditMode] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const {
     register,
@@ -30,10 +31,19 @@ const ProjectForm = () => {
 
   const fetchProjects = async () => {
     try {
+      setIsLoading(true);
+      setError(null);
       const res = await axios.get(`http://localhost:5000/api/profile/${profileId}`);
-      setProjects(res.data.projects || []);
+      if (res.data && Array.isArray(res.data.projects)) {
+        setProjects(res.data.projects);
+      } else {
+        setProjects([]);
+      }
     } catch (err) {
       console.error("❌ Error al cargar proyectos:", err);
+      setError("Error al cargar los proyectos. Por favor, intente nuevamente.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -43,29 +53,51 @@ const ProjectForm = () => {
 
   const onSubmit = async (data) => {
     try {
-      let res;
-      if (editMode) {
-        res = await axios.put(`http://localhost:5000/api/profile/${profileId}/projects/${editingId}`, data);
-      } else {
-        res = await axios.post(`http://localhost:5000/api/profile/${profileId}/projects`, data);
-      }
-      if (res.data.projects) {
+      setIsLoading(true);
+      setError(null);
+
+      const url = `http://localhost:5000/api/profile/${profileId}/projects${editMode ? `/${editingId}` : ''}`;
+      const method = editMode ? 'put' : 'post';
+      
+      const res = await axios[method](url, data);
+
+      if (res.data && Array.isArray(res.data.projects)) {
         setProjects(res.data.projects);
+        reset();
+        setEditMode(false);
+        setEditingId(null);
+      } else {
+        throw new Error("Formato de respuesta inválido");
       }
-      reset();
-      setEditMode(false);
-      setEditingId(null);
     } catch (error) {
-      console.error("❌ Error al guardar proyecto:", error.response?.data || error.message);
+      console.error("❌ Error al guardar proyecto:", error);
+      setError(error.response?.data?.error || "Error al guardar. Por favor, intente nuevamente.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleDelete = async (id) => {
+    if (!window.confirm("¿Estás seguro que deseas eliminar este proyecto?")) return;
+
     try {
-      const res = await axios.delete(`http://localhost:5000/api/profile/${profileId}/projects/${id}`);
-      setProjects(res.data.projects);
+      setIsLoading(true);
+      setError(null);
+
+      const res = await axios.delete(
+        `http://localhost:5000/api/profile/${profileId}/projects/${id}`
+      );
+
+      if (res.data && Array.isArray(res.data.projects)) {
+        setProjects(res.data.projects);
+      } else {
+        throw new Error("Formato de respuesta inválido");
+      }
     } catch (error) {
       console.error("❌ Error al eliminar proyecto:", error);
+      setError(error.response?.data?.error || "Error al eliminar. Por favor, intente nuevamente.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -78,40 +110,84 @@ const ProjectForm = () => {
     setValue("link", project.link || "");
   };
 
+  const handleCancel = () => {
+    setEditMode(false);
+    setEditingId(null);
+    reset();
+  };
+
+  if (isLoading) {
+    return <div className="text-center py-4">Cargando...</div>;
+  }
+
   return (
     <div className="max-w-2xl mx-auto mt-10 bg-white p-6 rounded-xl shadow">
       <h2 className="text-2xl font-bold mb-4 text-center">
         {editMode ? "Editar Proyecto" : "Agregar Proyecto"}
       </h2>
 
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          {error}
+        </div>
+      )}
+
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mb-6">
         <div>
-          <label>Nombre del Proyecto</label>
-          <input {...register("name")} className="w-full border p-2 rounded" />
+          <label className="block">Nombre del Proyecto</label>
+          <input
+            {...register("name")}
+            className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
           <p className="text-red-500 text-sm">{errors.name?.message}</p>
         </div>
 
         <div>
-          <label>Descripción</label>
-          <textarea {...register("description")} className="w-full border p-2 rounded" />
+          <label className="block">Descripción</label>
+          <textarea
+            {...register("description")}
+            className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            rows="4"
+          />
           <p className="text-red-500 text-sm">{errors.description?.message}</p>
         </div>
 
         <div>
-          <label>Tecnologías Usadas</label>
-          <input {...register("technologies")} className="w-full border p-2 rounded" />
+          <label className="block">Tecnologías Usadas</label>
+          <input
+            {...register("technologies")}
+            className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
           <p className="text-red-500 text-sm">{errors.technologies?.message}</p>
         </div>
 
         <div>
-          <label>Enlace (opcional)</label>
-          <input {...register("link")} className="w-full border p-2 rounded" />
+          <label className="block">Enlace (opcional)</label>
+          <input
+            {...register("link")}
+            className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
           <p className="text-red-500 text-sm">{errors.link?.message}</p>
         </div>
 
-        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-          {editMode ? "Guardar Cambios" : "Agregar Proyecto"}
-        </button>
+        <div className="flex gap-2">
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex-1"
+          >
+            {isLoading ? "Guardando..." : editMode ? "Guardar Cambios" : "Agregar Proyecto"}
+          </button>
+          {editMode && (
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400"
+            >
+              Cancelar
+            </button>
+          )}
+        </div>
       </form>
 
       <div>
@@ -134,10 +210,18 @@ const ProjectForm = () => {
                   </p>
                 )}
                 <div className="absolute top-2 right-2 flex gap-3">
-                  <button onClick={() => handleEdit(proj)} className="text-yellow-600 hover:text-yellow-800">
+                  <button
+                    onClick={() => handleEdit(proj)}
+                    className="text-yellow-600 hover:text-yellow-800 disabled:opacity-50"
+                    disabled={isLoading}
+                  >
                     <FaEdit />
                   </button>
-                  <button onClick={() => handleDelete(proj._id)} className="text-red-600 hover:text-red-800">
+                  <button
+                    onClick={() => handleDelete(proj._id)}
+                    className="text-red-600 hover:text-red-800 disabled:opacity-50"
+                    disabled={isLoading}
+                  >
                     <FaTrash />
                   </button>
                 </div>

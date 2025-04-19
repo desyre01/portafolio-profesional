@@ -81,6 +81,8 @@ exports.updateEducationInProfile = async (req, res) => {
 
   try {
     const profile = await Profile.findById(id);
+    if (!profile) return res.status(404).json({ error: "Perfil no encontrado" });
+
     const edu = profile.education.id(eduId);
     if (!edu) return res.status(404).json({ error: "Educación no encontrada" });
 
@@ -96,13 +98,15 @@ exports.deleteEducationFromProfile = async (req, res) => {
   const { id, eduId } = req.params;
   try {
     const profile = await Profile.findById(id);
-    const edu = profile.education.id(eduId);
-    if (!edu) return res.status(404).json({ error: "Educación no encontrada" });
+    if (!profile) return res.status(404).json({ error: "Perfil no encontrado" });
 
-    edu.remove();
+    // Replace remove() with pull()
+    profile.education.pull(eduId);
     await profile.save();
+    
     res.json({ message: "Educación eliminada", education: profile.education });
   } catch (error) {
+    console.error("Delete Education Error:", error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -114,6 +118,8 @@ exports.addExperienceToProfile = async (req, res) => {
 
   try {
     const profile = await Profile.findById(req.params.id);
+    if (!profile) return res.status(404).json({ error: "Perfil no encontrado" });
+
     profile.experience.push(req.body);
     await profile.save();
     res.json({ message: "Experiencia agregada", experience: profile.experience });
@@ -129,6 +135,8 @@ exports.updateExperienceInProfile = async (req, res) => {
 
   try {
     const profile = await Profile.findById(id);
+    if (!profile) return res.status(404).json({ error: "Perfil no encontrado" });
+
     const exp = profile.experience.id(expId);
     if (!exp) return res.status(404).json({ error: "Experiencia no encontrada" });
 
@@ -144,13 +152,15 @@ exports.deleteExperienceFromProfile = async (req, res) => {
   const { id, expId } = req.params;
   try {
     const profile = await Profile.findById(id);
-    const exp = profile.experience.id(expId);
-    if (!exp) return res.status(404).json({ error: "Experiencia no encontrada" });
+    if (!profile) return res.status(404).json({ error: "Perfil no encontrado" });
 
-    exp.remove();
+    // Replace remove() with pull()
+    profile.experience.pull(expId);
     await profile.save();
+    
     res.json({ message: "Experiencia eliminada", experience: profile.experience });
   } catch (error) {
+    console.error("Delete Experience Error:", error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -162,6 +172,8 @@ exports.addProjectToProfile = async (req, res) => {
 
   try {
     const profile = await Profile.findById(req.params.id);
+    if (!profile) return res.status(404).json({ error: "Perfil no encontrado" });
+
     profile.projects.push(req.body);
     await profile.save();
     res.json({ message: "Proyecto agregado", projects: profile.projects });
@@ -189,133 +201,282 @@ exports.updateProjectInProfile = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-exports.updateProjectInProfile = async (req, res) => {
-    const { id, projectId } = req.params;
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
-  
-    try {
-      const profile = await Profile.findById(id);
-      if (!profile) return res.status(404).json({ error: "Perfil no encontrado" });
-  
-      const proj = profile.projects.id(projectId);
-      if (!proj) return res.status(404).json({ error: "Proyecto no encontrado" });
-  
-      Object.assign(proj, req.body);
-      await profile.save();
-      res.json({ message: "Proyecto actualizado", projects: profile.projects });
-    } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
-  };
 
 exports.deleteProjectFromProfile = async (req, res) => {
   const { id, projectId } = req.params;
   try {
     const profile = await Profile.findById(id);
-    const proj = profile.projects.id(projectId);
-    if (!proj) return res.status(404).json({ error: "Proyecto no encontrado" });
+    if (!profile) return res.status(404).json({ error: "Perfil no encontrado" });
 
-    proj.remove();
+    // Using pull() instead of remove()
+    profile.projects.pull(projectId);
     await profile.save();
+    
     res.json({ message: "Proyecto eliminado", projects: profile.projects });
   } catch (error) {
+    console.error("Delete Project Error:", error);
     res.status(500).json({ error: error.message });
   }
 };
 
 // ---------------------- HABILIDADES ----------------------
 exports.addSkillToProfile = async (req, res) => {
-  const { name, category, level } = req.body;
-  const profile = await Profile.findById(req.params.id);
-  profile.skills.push({ name, category, level });
-  await profile.save();
-  res.json({ message: "Habilidad agregada", skills: profile.skills });
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+  try {
+    const profile = await Profile.findById(req.params.id);
+    if (!profile) return res.status(404).json({ error: "Perfil no encontrado" });
+
+    const { name, category, level } = req.body;
+    profile.skills.push({ name, category, level });
+    await profile.save();
+    res.json({ message: "Habilidad agregada", skills: profile.skills });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
 exports.updateSkillInProfile = async (req, res) => {
   const { id, skillId } = req.params;
-  const profile = await Profile.findById(id);
-  const skill = profile.skills.id(skillId);
-  if (!skill) return res.status(404).json({ error: "Habilidad no encontrada" });
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-  Object.assign(skill, req.body);
-  await profile.save();
-  res.json({ message: "Habilidad actualizada", skills: profile.skills });
+  try {
+    const profile = await Profile.findById(id);
+    if (!profile) return res.status(404).json({ error: "Perfil no encontrado" });
+
+    const skill = profile.skills.id(skillId);
+    if (!skill) return res.status(404).json({ error: "Habilidad no encontrada" });
+
+    Object.assign(skill, req.body);
+    await profile.save();
+    res.json({ message: "Habilidad actualizada", skills: profile.skills });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
+// Update Skills delete operation
 exports.deleteSkillFromProfile = async (req, res) => {
   const { id, skillId } = req.params;
-  const profile = await Profile.findById(id);
-  const skill = profile.skills.id(skillId);
-  if (!skill) return res.status(404).json({ error: "Habilidad no encontrada" });
+  try {
+    const profile = await Profile.findById(id);
+    if (!profile) return res.status(404).json({ error: "Perfil no encontrado" });
 
-  skill.remove();
-  await profile.save();
-  res.json({ message: "Habilidad eliminada", skills: profile.skills });
+    // Replace remove() with pull()
+    profile.skills.pull(skillId);
+    await profile.save();
+    
+    res.json({ message: "Habilidad eliminada", skills: profile.skills });
+  } catch (error) {
+    console.error("Delete Skill Error:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Update Languages delete operation
+exports.deleteLanguageFromProfile = async (req, res) => {
+  const { id, langId } = req.params;
+  try {
+    const profile = await Profile.findById(id);
+    if (!profile) return res.status(404).json({ error: "Perfil no encontrado" });
+
+    // Replace remove() with pull()
+    profile.languages.pull(langId);
+    await profile.save();
+    
+    res.json({ message: "Idioma eliminado", languages: profile.languages });
+  } catch (error) {
+    console.error("Delete Language Error:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Update References delete operation
+exports.deleteReferenceFromProfile = async (req, res) => {
+  const { id, refId } = req.params;
+  try {
+    const profile = await Profile.findById(id);
+    if (!profile) return res.status(404).json({ error: "Perfil no encontrado" });
+
+    // Replace remove() with pull()
+    profile.references.pull(refId);
+    await profile.save();
+    
+    res.json({ message: "Referencia eliminada", references: profile.references });
+  } catch (error) {
+    console.error("Delete Reference Error:", error);
+    res.status(500).json({ error: error.message });
+  }
 };
 
 // ---------------------- IDIOMAS ----------------------
 exports.addLanguageToProfile = async (req, res) => {
-  const profile = await Profile.findById(req.params.id);
-  profile.languages.push(req.body);
-  await profile.save();
-  res.json({ message: "Idioma agregado", languages: profile.languages });
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+  try {
+    const profile = await Profile.findById(req.params.id);
+    if (!profile) return res.status(404).json({ error: "Perfil no encontrado" });
+
+    profile.languages.push(req.body);
+    await profile.save();
+    res.json({ message: "Idioma agregado", languages: profile.languages });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
 exports.updateLanguageInProfile = async (req, res) => {
   const { id, langId } = req.params;
-  const profile = await Profile.findById(id);
-  const lang = profile.languages.id(langId);
-  if (!lang) return res.status(404).json({ error: "Idioma no encontrado" });
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-  Object.assign(lang, req.body);
-  await profile.save();
-  res.json({ message: "Idioma actualizado", languages: profile.languages });
+  try {
+    const profile = await Profile.findById(id);
+    if (!profile) return res.status(404).json({ error: "Perfil no encontrado" });
+
+    const lang = profile.languages.id(langId);
+    if (!lang) return res.status(404).json({ error: "Idioma no encontrado" });
+
+    Object.assign(lang, req.body);
+    await profile.save();
+    res.json({ message: "Idioma actualizado", languages: profile.languages });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
 exports.deleteLanguageFromProfile = async (req, res) => {
   const { id, langId } = req.params;
-  const profile = await Profile.findById(id);
-  const lang = profile.languages.id(langId);
-  if (!lang) return res.status(404).json({ error: "Idioma no encontrado" });
+  try {
+    const profile = await Profile.findById(id);
+    if (!profile) return res.status(404).json({ error: "Perfil no encontrado" });
 
-  lang.remove();
-  await profile.save();
-  res.json({ message: "Idioma eliminado", languages: profile.languages });
+    // Replace remove() with pull()
+    profile.languages.pull(langId);
+    await profile.save();
+    
+    res.json({ message: "Idioma eliminado", languages: profile.languages });
+  } catch (error) {
+    console.error("Delete Language Error:", error);
+    res.status(500).json({ error: error.message });
+  }
 };
 
 // ---------------------- REFERENCIAS ----------------------
 exports.addReferenceToProfile = async (req, res) => {
-  const profile = await Profile.findById(req.params.id);
-  profile.references.push(req.body);
-  await profile.save();
-  res.json({ message: "Referencia agregada", references: profile.references });
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+  try {
+    const profile = await Profile.findById(req.params.id);
+    if (!profile) return res.status(404).json({ error: "Perfil no encontrado" });
+
+    profile.references.push(req.body);
+    await profile.save();
+    res.json({ message: "Referencia agregada", references: profile.references });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
 exports.updateReferenceInProfile = async (req, res) => {
   const { id, refId } = req.params;
-  const profile = await Profile.findById(id);
-  const ref = profile.references.id(refId);
-  if (!ref) return res.status(404).json({ error: "Referencia no encontrada" });
+  const errors = validationResult(req);
+  
+  // Add detailed logging
+  console.log('Request Body:', req.body);
+  
+  if (!errors.isEmpty()) {
+    console.log('Validation Errors:', errors.array());
+    return res.status(400).json({ errors: errors.array() });
+  }
 
-  Object.assign(ref, req.body);
-  await profile.save();
-  res.json({ message: "Referencia actualizada", references: profile.references });
+  try {
+    const profile = await Profile.findById(id);
+    if (!profile) return res.status(404).json({ error: "Perfil no encontrado" });
+
+    const ref = profile.references.id(refId);
+    if (!ref) return res.status(404).json({ error: "Referencia no encontrada" });
+
+    Object.assign(ref, req.body);
+    await profile.save();
+    res.json({ message: "Referencia actualizada", references: profile.references });
+  } catch (error) {
+    console.error("Update Reference Error:", error);
+    res.status(500).json({ error: error.message });
+  }
 };
 
 exports.deleteReferenceFromProfile = async (req, res) => {
   const { id, refId } = req.params;
-  const profile = await Profile.findById(id);
-  const ref = profile.references.id(refId);
-  if (!ref) return res.status(404).json({ error: "Referencia no encontrada" });
+  try {
+    const profile = await Profile.findById(id);
+    if (!profile) return res.status(404).json({ error: "Perfil no encontrado" });
 
-  ref.remove();
-  await profile.save();
-  res.json({ message: "Referencia eliminada", references: profile.references });
+    // Replace remove() with pull()
+    profile.references.pull(refId);
+    await profile.save();
+    
+    res.json({ message: "Referencia eliminada", references: profile.references });
+  } catch (error) {
+    console.error("Delete Reference Error:", error);
+    res.status(500).json({ error: error.message });
+  }
 };
 
 // ---------------------- CONTACTO ----------------------
+exports.addSocialsToProfile = async (req, res) => {
+  try {
+    const profile = await Profile.findById(req.params.id);
+    if (!profile) return res.status(404).json({ error: "Perfil no encontrado" });
+
+    // Initialize socials if it doesn't exist
+    if (!profile.socials) {
+      profile.socials = {};
+    }
+
+    // Add new social media links
+    const { linkedin, github, twitter, portfolio } = req.body;
+    profile.socials = {
+      ...profile.socials,
+      linkedin: linkedin || '',
+      github: github || '',
+      twitter: twitter || '',
+      portfolio: portfolio || ''
+    };
+
+    await profile.save();
+    res.json({ message: "Redes sociales agregadas", socials: profile.socials });
+  } catch (error) {
+    console.error("Add Socials Error:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.getSocialsFromProfile = async (req, res) => {
+  try {
+    const profile = await Profile.findById(req.params.id);
+    if (!profile) {
+      return res.status(404).json({ message: "Perfil no encontrado" });
+    }
+    
+    const socials = {
+      linkedin: profile.socials?.linkedin || "",
+      github: profile.socials?.github || "",
+      twitter: profile.socials?.twitter || "",
+      portfolio: profile.socials?.portfolio || ""
+    };
+    
+    res.json(socials);
+  } catch (error) {
+    res.status(500).json({ message: "Error al obtener redes sociales", error: error.message });
+  }
+};
+
+
 exports.updateSocialsInProfile = async (req, res) => {
   const { id } = req.params;
   const { linkedin, github, twitter, portfolio } = req.body;
@@ -333,6 +494,29 @@ exports.updateSocialsInProfile = async (req, res) => {
   }
 };
 
+exports.deleteSocialFromProfile = async (req, res) => {
+  const { id, socialType } = req.params;
+  try {
+    const profile = await Profile.findById(id);
+    if (!profile) return res.status(404).json({ error: "Perfil no encontrado" });
+
+    // Validate social type
+    if (!['linkedin', 'github', 'twitter', 'portfolio'].includes(socialType)) {
+      return res.status(400).json({ error: "Tipo de red social no válido" });
+    }
+
+    // Set the specific social field to empty string
+    profile.socials[socialType] = '';
+    await profile.save();
+    
+    res.json({ message: "Red social eliminada", socials: profile.socials });
+  } catch (error) {
+    console.error("Delete Social Error:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
 // ---------------------- TUTORIAL ----------------------
 exports.markTutorialAsSeen = async (req, res) => {
   const { id } = req.params;
@@ -349,3 +533,5 @@ exports.markTutorialAsSeen = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+module.exports = exports;
