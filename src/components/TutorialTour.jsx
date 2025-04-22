@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { TourProvider, useTour } from "@reactour/tour";
 import axios from "axios";
 
@@ -38,7 +38,7 @@ const steps = [
 ];
 
 const InnerTour = ({ profileId }) => {
-  const { setIsOpen, isOpen, setCurrentStep } = useTour();
+  const { setIsOpen, setCurrentStep } = useTour();
 
   useEffect(() => {
     const seen = localStorage.getItem("hasSeenTutorial");
@@ -51,22 +51,7 @@ const InnerTour = ({ profileId }) => {
     }
   }, [profileId, setIsOpen, setCurrentStep]);
 
-  const handleClose = async () => {
-    setIsOpen(false);
-    localStorage.setItem("hasSeenTutorial", "true");
-
-    if (profileId) {
-      try {
-        await axios.put(`http://localhost:5000/api/profile/${profileId}/tutorial`, {
-          hasSeenTutorial: true,
-        });
-      } catch (err) {
-        console.error("❌ Error al guardar estado del tutorial:", err);
-      }
-    }
-  };
-
-  return null; 
+  return null;
 };
 
 const TutorialTour = ({ profileId }) => {

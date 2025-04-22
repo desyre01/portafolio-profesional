@@ -15,6 +15,9 @@ import TutorialTour from "./components/TutorialTour";
 import ChatbotWidget from "./components/ChatbotWidget";
 import LanguagesForm from "./components/LanguagesForm";
 import ReferencesForm from "./components/ReferencesForm";
+import ProfileCardView from "./components/ProfileCardView";
+import UnifiedPortfolioForm from "./components/UnifiedPortfolioForm";
+
 
 function App() {
   const profileId = localStorage.getItem("profileId");
@@ -22,7 +25,7 @@ function App() {
   return (
     <Router>
       <Navbar />
-
+  
       {profileId && <TutorialTour profileId={profileId} />}
 
       <Routes>
@@ -37,6 +40,9 @@ function App() {
         <Route path="/contact" element={<ContactForm />} />
         <Route path="/languages" element={<LanguagesForm />} />
         <Route path="/references" element={<ReferencesForm />} />
+        <Route path="/profile/:id" element={<ProfileCardView />} />
+        <Route path="/unified-form" element={<UnifiedPortfolioForm />} />
+
       </Routes>
 
       <ChatbotWidget />
