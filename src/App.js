@@ -5,7 +5,7 @@ import CreatePortfolio from "./pages/CreatePortfolio";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import PersonalInfoForm from "./components/PersonalInfoForm";
-import ProfileView from "./pages/ProfileView";
+import ProfileView from "./components/ProfileView";
 import EducationForm from "./components/EducationForm";
 import WorkExperienceForm from "./components/WorkExperienceForm";
 import ProjectForm from "./components/ProjectForm";
@@ -17,7 +17,7 @@ import LanguagesForm from "./components/LanguagesForm";
 import ReferencesForm from "./components/ReferencesForm";
 import ProfileCardView from "./components/ProfileCardView";
 import UnifiedPortfolioForm from "./components/UnifiedPortfolioForm";
-
+import FullPortfolioForm from "./components/FullPortfolioForm";
 
 function App() {
   const profileId = localStorage.getItem("profileId");
@@ -29,10 +29,13 @@ function App() {
       {profileId && <TutorialTour profileId={profileId} />}
 
       <Routes>
+        {/* Páginas principales */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/create" element={<CreatePortfolio />} />
+        <Route path="/unified-form" element={<UnifiedPortfolioForm />} />
+        
+        {/* Formularios de información */}
         <Route path="/personal-info" element={<PersonalInfoForm />} />
-        <Route path="/profile/:id" element={<ProfileView />} />
         <Route path="/education" element={<EducationForm />} />
         <Route path="/work-experience" element={<WorkExperienceForm />} />
         <Route path="/projects" element={<ProjectForm />} />
@@ -40,9 +43,11 @@ function App() {
         <Route path="/contact" element={<ContactForm />} />
         <Route path="/languages" element={<LanguagesForm />} />
         <Route path="/references" element={<ReferencesForm />} />
-        <Route path="/profile/:id" element={<ProfileCardView />} />
-        <Route path="/unified-form" element={<UnifiedPortfolioForm />} />
+        <Route path="/crear-portafolio" element={<UnifiedPortfolioForm />} />
+        <Route path="/crear-portafolio-completo" element={<FullPortfolioForm />} />
 
+        {/* Vistas de perfil */}
+        <Route path="/profile/:id" element={<ProfileView />} />
       </Routes>
 
       <ChatbotWidget />

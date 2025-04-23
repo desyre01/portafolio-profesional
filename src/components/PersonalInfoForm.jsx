@@ -4,7 +4,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-;
 
 const schema = yup.object().shape({
   name: yup.string().required("El nombre es obligatorio"),
@@ -14,7 +13,7 @@ const schema = yup.object().shape({
   location: yup.string().required("La ubicación es obligatoria"),
 });
 
-const PersonalInfoForm = () => {
+const PersonalInfoForm = ({ onNext }) => {
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -25,7 +24,6 @@ const PersonalInfoForm = () => {
     formState: { errors },
   } = useForm({ resolver: yupResolver(schema) });
 
-  
   useEffect(() => {
     const fetchProfile = async () => {
       if (id) {
@@ -56,7 +54,12 @@ const PersonalInfoForm = () => {
       const response = await axios[method](url, data);
 
       const profileId = response.data._id;
-      navigate(`/profile/${profileId}`);
+      
+      if (onNext) {
+        onNext(profileId);
+      } else {
+        navigate(`/profile/${profileId}`);
+      }
     } catch (error) {
       console.error("❌ Error al guardar el perfil:", error.response?.data || error.message);
     }
@@ -65,7 +68,7 @@ const PersonalInfoForm = () => {
   return (
     <div className="max-w-2xl mx-auto mt-10 bg-white shadow-lg rounded-xl p-8">
       <h2 className="text-3xl font-bold mb-6 text-center text-gray-800">
-        {id ? "Editar Información Personal" : "Crear Perfil"}
+        {id ? "Editar Información Personal" : "Información Personal"}
       </h2>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -119,7 +122,7 @@ const PersonalInfoForm = () => {
           type="submit"
           className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded"
         >
-          {id ? "Guardar Cambios" : "Crear Perfil"}
+          {id ? "Guardar Cambios" : "Siguiente"}
         </button>
       </form>
     </div>

@@ -1,12 +1,13 @@
 import React from "react";
 
-function Footer() {
+const Footer = () => {
   return (
-    <footer className="footer">
-      <p>Proyecto Portafolio Profesional - 2025</p>
-      <p>Creado por Desyre Hernández y Ricardo Su</p>
+    <footer className="bg-gray-100 py-4 mt-12">
+      <p className="text-center text-sm text-gray-500">
+        Proyecto Portafolio Profesional - 2025
+      </p>
     </footer>
   );
-}
+};
 
 export default Footer;

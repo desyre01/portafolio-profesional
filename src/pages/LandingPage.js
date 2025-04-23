@@ -33,12 +33,17 @@ function LandingPage() {
 
   return (
     <div className="px-4 md:px-10 py-10 bg-gray-100 min-h-screen">
+      {/* Encabezado principal */}
       <div className="max-w-4xl mx-auto text-center mb-10">
-        <h1 className="text-4xl font-bold mb-2">Bienvenido a Mi Portafolio</h1>
-        <p className="text-gray-600">Explora y crea tu propio portafolio profesional.</p>
+        <h1 className="text-4xl font-bold mb-2 text-blue-700">PortaRed</h1>
+        <p className="text-gray-600">
+          Explorá y creá tu propio portafolio profesional.
+        </p>
+
+        {/* 🔗 Botón que redirige al formulario unificado */}
         <button
-          onClick={() => navigate("/create")}
-          className="mt-4 bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+          onClick={() => navigate("/crear-portafolio")}
+          className="mt-5 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all"
         >
           Comenzar
         </button>
@@ -56,9 +61,11 @@ function LandingPage() {
             {profiles.map((profile) => (
               <div
                 key={profile._id}
-                className="bg-white shadow-md p-6 rounded-lg relative border border-gray-200"
+                className="bg-white shadow-md p-6 rounded-lg border border-gray-200 hover:shadow-lg transition-all"
               >
-                <h3 className="text-xl font-bold">{profile.name}</h3>
+                <h3 className="text-xl font-bold text-gray-800">
+                  {profile.name}
+                </h3>
                 <p className="text-gray-600">{profile.profession}</p>
                 <p className="text-sm text-gray-400">{profile.location}</p>
 
