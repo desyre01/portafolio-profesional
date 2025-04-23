@@ -2,18 +2,16 @@ import { useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import axios from "axios";
-import { FaTrash, FaEdit } from "react-icons/fa";
 
 const schema = yup.object().shape({
   language: yup.string().required("Idioma es requerido"),
   level: yup.string().required("Nivel es requerido"),
 });
 
-const LanguagesForm = ({ profileId, onNext }) => {
-  const [languages, setLanguages] = useState([]);
+const LanguagesForm = ({ initialData = [], onNext }) => {
+  const [languages, setLanguages] = useState(initialData || []);
   const [editMode, setEditMode] = useState(false);
-  const [editingId, setEditingId] = useState(null);
+  const [editingIndex, setEditingIndex] = useState(null);
 
   const {
     register,
@@ -23,66 +21,137 @@ const LanguagesForm = ({ profileId, onNext }) => {
     formState: { errors },
   } = useForm({ resolver: yupResolver(schema) });
 
-  // ... existing code ...
-
-  const onSubmit = async (data) => {
-    try {
-      if (editMode) {
-        const res = await axios.put(
-          `http://localhost:5000/api/profile/${profileId}/languages/${editingId}`,
-          data
-        );
-        setLanguages(res.data.languages);
-        setEditMode(false);
-        setEditingId(null);
-      } else {
-        const res = await axios.post(
-          `http://localhost:5000/api/profile/${profileId}/languages`,
-          data
-        );
-        setLanguages(res.data.languages);
-        if (onNext) {
-          onNext();
-        }
-      }
-      reset();
-    } catch (error) {
-      console.error("❌ Error al guardar idioma:", error.response?.data || error.message);
+  useEffect(() => {
+    if (initialData.length > 0) {
+      setLanguages(initialData);
     }
+  }, [initialData]);
+
+  const onSubmit = (data) => {
+    let updated = [...languages];
+    if (editMode) {
+      updated[editingIndex] = data;
+    } else {
+      updated.push(data);
+    }
+    setLanguages(updated);
+    reset();
+    setEditMode(false);
+    setEditingIndex(null);
   };
 
-  // ... existing code ...
+  const handleEdit = (index) => {
+    const lang = languages[index];
+    setValue("language", lang.language);
+    setValue("level", lang.level);
+    setEditMode(true);
+    setEditingIndex(index);
+  };
+
+  const handleDelete = (index) => {
+    const updated = languages.filter((_, i) => i !== index);
+    setLanguages(updated);
+  };
+
+  const handleNext = () => {
+    if (onNext) onNext(languages);
+  };
 
   return (
-    <div className="max-w-2xl mx-auto mt-10 bg-white p-6 rounded-xl shadow">
+    <div className="max-w-2xl mx-auto mt-10 bg-white shadow-lg rounded-xl p-6">
       <h2 className="text-2xl font-bold mb-4 text-center">
-        {editMode ? "Editar Idioma" : "Idiomas"}
+        Idiomas
       </h2>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mb-6">
         <div>
-          <label>Idioma</label>
-          <input {...register("language")} className="w-full border p-2 rounded" />
-          <p className="text-red-500 text-sm">{errors.language?.message}</p>
+          <label className="block text-sm font-medium text-gray-700">Idioma</label>
+          <input 
+            {...register("language")} 
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+          />
+          {errors.language && (
+            <p className="text-sm text-red-600">{errors.language.message}</p>
+          )}
         </div>
+
         <div>
-          <label>Nivel</label>
-          <select {...register("level")} className="w-full border p-2 rounded">
+          <label className="block text-sm font-medium text-gray-700">Nivel</label>
+          <select 
+            {...register("level")} 
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+          >
             <option value="">Selecciona nivel</option>
             <option value="Básico">Básico</option>
             <option value="Intermedio">Intermedio</option>
             <option value="Avanzado">Avanzado</option>
             <option value="Nativo">Nativo</option>
           </select>
-          <p className="text-red-500 text-sm">{errors.level?.message}</p>
+          {errors.level && (
+            <p className="text-sm text-red-600">{errors.level.message}</p>
+          )}
         </div>
 
-        <button type="submit" className="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-          {editMode ? "Guardar Cambios" : "Siguiente"}
-        </button>
+        <div className="flex gap-2 pt-2">
+          <button
+            type="submit"
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex-1"
+          >
+            {editMode ? "Guardar Cambios" : "Agregar"}
+          </button>
+          {editMode && (
+            <button
+              type="button"
+              onClick={() => {
+                reset();
+                setEditMode(false);
+              }}
+              className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400"
+            >
+              Cancelar
+            </button>
+          )}
+        </div>
       </form>
 
-      {/* ... existing code ... */}
+      <div>
+        <h3 className="text-xl font-semibold mb-2">Idiomas Agregados:</h3>
+        {languages.length === 0 ? (
+          <p className="text-gray-500">No hay idiomas aún.</p>
+        ) : (
+          <ul className="space-y-4">
+            {languages.map((lang, index) => (
+              <li key={index} className="border p-4 rounded bg-gray-50 shadow-sm flex justify-between">
+                <div>
+                  <p><strong>Idioma:</strong> {lang.language}</p>
+                  <p><strong>Nivel:</strong> {lang.level}</p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleEdit(index)}
+                    className="text-yellow-600 hover:text-yellow-800"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    onClick={() => handleDelete(index)}
+                    className="text-red-600 hover:text-red-800"
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <button
+        onClick={handleNext}
+        className="mt-6 w-full bg-green-600 text-white py-2 rounded hover:bg-green-700"
+      >
+        Siguiente
+      </button>
     </div>
   );
 };

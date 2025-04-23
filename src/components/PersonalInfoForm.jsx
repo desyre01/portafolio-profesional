@@ -1,7 +1,5 @@
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 
@@ -13,117 +11,90 @@ const schema = yup.object().shape({
   location: yup.string().required("La ubicación es obligatoria"),
 });
 
-const PersonalInfoForm = ({ onNext }) => {
-  const { id } = useParams();
-  const navigate = useNavigate();
-
+const PersonalInfoForm = ({ initialData, onNext }) => {
   const {
     register,
     handleSubmit,
-    setValue,
+    reset,
     formState: { errors },
   } = useForm({ resolver: yupResolver(schema) });
 
+  // Rellenar el formulario si hay datos previos
   useEffect(() => {
-    const fetchProfile = async () => {
-      if (id) {
-        try {
-          const res = await axios.get(`http://localhost:5000/api/profile/${id}`);
-          const { name, profession, email, phone, location } = res.data;
-          setValue("name", name);
-          setValue("profession", profession);
-          setValue("email", email);
-          setValue("phone", phone);
-          setValue("location", location);
-        } catch (error) {
-          console.error("❌ Error al cargar el perfil:", error);
-        }
-      }
-    };
-
-    fetchProfile();
-  }, [id, setValue]);
-
-  const onSubmit = async (data) => {
-    try {
-      const url = id
-        ? `http://localhost:5000/api/profile/${id}`
-        : `http://localhost:5000/api/profile`;
-
-      const method = id ? "put" : "post";
-      const response = await axios[method](url, data);
-
-      const profileId = response.data._id;
-      
-      if (onNext) {
-        onNext(profileId);
-      } else {
-        navigate(`/profile/${profileId}`);
-      }
-    } catch (error) {
-      console.error("❌ Error al guardar el perfil:", error.response?.data || error.message);
+    if (initialData) {
+      reset(initialData);
     }
+  }, [initialData, reset]);
+
+  const onSubmit = (data) => {
+    // Envía los datos hacia el componente padre sin guardar aún
+    onNext(data);
   };
 
   return (
-    <div className="max-w-2xl mx-auto mt-10 bg-white shadow-lg rounded-xl p-8">
-      <h2 className="text-3xl font-bold mb-6 text-center text-gray-800">
-        {id ? "Editar Información Personal" : "Información Personal"}
-      </h2>
+    <div className="max-w-2xl mx-auto mt-10 bg-white shadow-lg rounded-xl p-6">
+      <h2 className="text-2xl font-bold mb-4 text-center">Información Personal</h2>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
-          <label className="block font-medium">Nombre</label>
+          <label className="block text-sm font-medium text-gray-700">Nombre</label>
           <input
             {...register("name")}
-            className="w-full border border-gray-300 rounded px-3 py-2"
+            placeholder="Tu nombre completo"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
           />
-          <p className="text-red-500 text-sm">{errors.name?.message}</p>
+          {errors.name && <p className="text-sm text-red-600">{errors.name.message}</p>}
         </div>
 
         <div>
-          <label className="block font-medium">Profesión</label>
+          <label className="block text-sm font-medium text-gray-700">Profesión</label>
           <input
             {...register("profession")}
-            className="w-full border border-gray-300 rounded px-3 py-2"
+            placeholder="Tu profesión o título"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
           />
-          <p className="text-red-500 text-sm">{errors.profession?.message}</p>
+          {errors.profession && <p className="text-sm text-red-600">{errors.profession.message}</p>}
         </div>
 
         <div>
-          <label className="block font-medium">Email</label>
+          <label className="block text-sm font-medium text-gray-700">Email</label>
           <input
             type="email"
             {...register("email")}
-            className="w-full border border-gray-300 rounded px-3 py-2"
+            placeholder="tu@email.com"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
           />
-          <p className="text-red-500 text-sm">{errors.email?.message}</p>
+          {errors.email && <p className="text-sm text-red-600">{errors.email.message}</p>}
         </div>
 
         <div>
-          <label className="block font-medium">Teléfono</label>
+          <label className="block text-sm font-medium text-gray-700">Teléfono</label>
           <input
             {...register("phone")}
-            className="w-full border border-gray-300 rounded px-3 py-2"
+            placeholder="+504 XXX XXX XXX"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
           />
-          <p className="text-red-500 text-sm">{errors.phone?.message}</p>
+          {errors.phone && <p className="text-sm text-red-600">{errors.phone.message}</p>}
         </div>
 
         <div>
-          <label className="block font-medium">Ubicación</label>
+          <label className="block text-sm font-medium text-gray-700">Ubicación</label>
           <input
             {...register("location")}
-            className="w-full border border-gray-300 rounded px-3 py-2"
+            placeholder="Ciudad, País"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
           />
-          <p className="text-red-500 text-sm">{errors.location?.message}</p>
+          {errors.location && <p className="text-sm text-red-600">{errors.location.message}</p>}
         </div>
 
-        <button
-          type="submit"
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded"
-        >
-          {id ? "Guardar Cambios" : "Siguiente"}
-        </button>
+        <div className="pt-4">
+          <button
+            type="submit"
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full"
+          >
+            Siguiente
+          </button>
+        </div>
       </form>
     </div>
   );

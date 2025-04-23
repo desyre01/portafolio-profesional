@@ -1,104 +1,99 @@
-import { useForm } from "react-hook-form";
-import { useState, useEffect } from "react";
-import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
-import { FaTrash, FaEdit } from "react-icons/fa";
-import axios from "axios";
+import React, { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
 
 const schema = yup.object().shape({
-  institution: yup.string().required("Institución es requerida"),
-  degree: yup.string().required("Grado es requerido"),
-  startDate: yup.string().required("Fecha de inicio es requerida"),
-  endDate: yup.string().required("Fecha de fin es requerida"),
-  description: yup.string(),
+  institution: yup.string().required('La institución es requerida'),
+  degree: yup.string().required('El grado/título es requerido'),
+  startDate: yup.date().required('La fecha de inicio es requerida'),
+  endDate: yup.date().required('La fecha de fin es requerida'),
+  description: yup.string().optional()
 });
 
-const EducationForm = ({ profileId, onNext }) => {
-  const [entries, setEntries] = useState([]);
-  const [editMode, setEditMode] = useState(false);
-  const [editingId, setEditingId] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-
+const EducationForm = ({ initialData = [], onNext }) => {
   const {
     register,
     handleSubmit,
     reset,
-    setValue,
-    formState: { errors },
+    formState: { errors }
   } = useForm({ resolver: yupResolver(schema) });
 
-  const handleCancel = () => {
-    setEditMode(false);
-    setEditingId(null);
-    reset();
-  };
-
-  const onSubmit = async (data) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const url = `http://localhost:5000/api/profile/${profileId}/education${editMode ? `/${editingId}` : ''}`;
-      const method = editMode ? 'put' : 'post';
-      
-      const res = await axios[method](url, data);
-
-      if (res.data && Array.isArray(res.data.education)) {
-        setEntries(res.data.education);
-        reset();
-        setEditMode(false);
-        setEditingId(null);
-        
-        // Si hay onNext y no estamos en modo edición, avanzamos al siguiente paso
-        if (onNext && !editMode) {
-          onNext();
-        }
-      } else {
-        throw new Error("Formato de respuesta inválido");
-      }
-    } catch (error) {
-      console.error("❌ Error al guardar educación:", error);
-      setError(error.response?.data?.error || "Error al guardar. Por favor, intente nuevamente.");
-    } finally {
-      setIsLoading(false);
+  // Podés precargar un solo registro si querés permitir edición
+  useEffect(() => {
+    if (initialData.length > 0) {
+      reset(initialData[0]); // solo si se edita el primero
     }
-  };
+  }, [initialData, reset]);
 
-  // ... existing code ...
+  const onSubmit = (data) => {
+    // Pasa el array de educación al padre (puede ser solo 1 entrada al inicio)
+    onNext([data]); // lo pasamos como array de un solo objeto
+  };
 
   return (
     <div className="max-w-2xl mx-auto mt-10 bg-white shadow-lg rounded-xl p-6">
-      <h2 className="text-2xl font-bold mb-4 text-center">
-        {editMode ? "Editar Educación" : "Agregar Educación"}
-      </h2>
-
-      {/* ... existing code ... */}
+      <h2 className="text-2xl font-bold mb-4 text-center">Educación</h2>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mb-6">
-        {/* ... existing code ... */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Institución</label>
+          <input
+            type="text"
+            {...register("institution")}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+          />
+          {errors.institution && <p className="text-sm text-red-600">{errors.institution.message}</p>}
+        </div>
 
-        <div className="flex gap-2">
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Grado/Título</label>
+          <input
+            type="text"
+            {...register("degree")}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+          />
+          {errors.degree && <p className="text-sm text-red-600">{errors.degree.message}</p>}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Fecha de Inicio</label>
+          <input
+            type="date"
+            {...register("startDate")}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+          />
+          {errors.startDate && <p className="text-sm text-red-600">{errors.startDate.message}</p>}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Fecha de Fin</label>
+          <input
+            type="date"
+            {...register("endDate")}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+          />
+          {errors.endDate && <p className="text-sm text-red-600">{errors.endDate.message}</p>}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Descripción</label>
+          <textarea
+            {...register("description")}
+            rows={4}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+          ></textarea>
+        </div>
+
+        <div className="pt-4">
           <button
             type="submit"
-            disabled={isLoading}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex-1"
+            className="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
           >
-            {isLoading ? "Guardando..." : editMode ? "Guardar Cambios" : "Siguiente"}
+            Siguiente
           </button>
-          {editMode && (
-            <button
-              type="button"
-              onClick={handleCancel}
-              className="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400"
-            >
-              Cancelar
-            </button>
-          )}
         </div>
       </form>
-
-      {/* ... existing code ... */}
     </div>
   );
 };

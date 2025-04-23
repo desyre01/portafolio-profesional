@@ -1,118 +1,93 @@
 import React, { useState } from "react";
-import { useForm } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-
-const schema = yup.object().shape({
-  name: yup.string().required("El nombre es obligatorio"),
-  profession: yup.string().required("La profesión es obligatoria"), 
-  email: yup.string().email("Email inválido").required("El email es obligatorio"),
-  phone: yup.string().required("El teléfono es obligatorio"),
-  location: yup.string().required("La ubicación es obligatoria")
-});
 
 const CreatePortfolio = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm({ resolver: yupResolver(schema) });
+  const [formData, setFormData] = useState({
+    name: "",
+    profession: "",
+    email: "",
+    phone: "",
+    location: "",
+  });
 
-  const onSubmit = async (data) => {
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleNext = () => {
     if (currentStep < 5) {
       setCurrentStep(currentStep + 1);
     } else {
-      try {
-        const response = await axios.post("http://localhost:5000/api/profile", data);
-        const profileId = response.data._id;
-        navigate(`/profile/${profileId}`);
-      } catch (error) {
-        console.error("❌ Error al crear el perfil:", error.response?.data || error.message);
-      }
+      handleSubmit();
     }
   };
 
-  const renderFormStep = () => {
-    switch(currentStep) {
+  const handleSubmit = async () => {
+    try {
+      const res = await axios.post("http://localhost:5000/api/profile", formData);
+      const newProfileId = res.data._id;
+      navigate(`/profile/${newProfileId}`);
+    } catch (err) {
+      console.error("❌ Error al guardar perfil:", err);
+      alert("Ocurrió un error al guardar el portafolio.");
+    }
+  };
+
+  const renderStep = () => {
+    switch (currentStep) {
       case 1:
         return (
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Nombre:
-            </label>
-            <input
-              {...register("name")}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            {errors.name && (
-              <p className="text-red-500 text-sm">{errors.name.message}</p>
-            )}
-          </div>
+          <input
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            placeholder="Nombre completo"
+            className="input-field"
+          />
         );
       case 2:
         return (
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Profesión:
-            </label>
-            <input
-              {...register("profession")}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            {errors.profession && (
-              <p className="text-red-500 text-sm">{errors.profession.message}</p>
-            )}
-          </div>
+          <input
+            name="profession"
+            value={formData.profession}
+            onChange={handleChange}
+            placeholder="Profesión o título"
+            className="input-field"
+          />
         );
       case 3:
         return (
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Email:
-            </label>
-            <input
-              {...register("email")}
-              type="email"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            {errors.email && (
-              <p className="text-red-500 text-sm">{errors.email.message}</p>
-            )}
-          </div>
+          <input
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            placeholder="Correo electrónico"
+            className="input-field"
+            type="email"
+          />
         );
       case 4:
         return (
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Teléfono:
-            </label>
-            <input
-              {...register("phone")}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            {errors.phone && (
-              <p className="text-red-500 text-sm">{errors.phone.message}</p>
-            )}
-          </div>
+          <input
+            name="phone"
+            value={formData.phone}
+            onChange={handleChange}
+            placeholder="Teléfono"
+            className="input-field"
+          />
         );
       case 5:
         return (
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Ubicación:
-            </label>
-            <input
-              {...register("location")}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            {errors.location && (
-              <p className="text-red-500 text-sm">{errors.location.message}</p>
-            )}
-          </div>
+          <input
+            name="location"
+            value={formData.location}
+            onChange={handleChange}
+            placeholder="Ubicación"
+            className="input-field"
+          />
         );
       default:
         return null;
@@ -120,18 +95,31 @@ const CreatePortfolio = () => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-lg mt-10">
-      <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">
-        Crear tu Portafolio
-      </h2>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {renderFormStep()}
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-        >
-          {currentStep < 5 ? "Siguiente" : "Finalizar"}
-        </button>
+    <div className="max-w-xl mx-auto mt-10 p-6 bg-white rounded shadow">
+      <h2 className="text-2xl font-bold text-center mb-4">Crear tu Portafolio</h2>
+
+      <form onSubmit={(e) => e.preventDefault()}>
+        <div className="mb-6">{renderStep()}</div>
+
+        <div className="flex justify-between">
+          {currentStep > 1 && (
+            <button
+              type="button"
+              onClick={() => setCurrentStep(currentStep - 1)}
+              className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
+            >
+              Anterior
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={handleNext}
+            className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+          >
+            {currentStep === 5 ? "Crear perfil" : "Siguiente"}
+          </button>
+        </div>
       </form>
     </div>
   );

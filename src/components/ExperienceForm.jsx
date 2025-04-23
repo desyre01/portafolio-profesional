@@ -5,6 +5,8 @@ import * as yup from "yup";
 import axios from "axios";
 import { FaTrash, FaEdit } from "react-icons/fa";
 
+const profileId = "67f2005a56202f2256f17212";
+
 const schema = yup.object().shape({
   company: yup.string().required("Empresa requerida"),
   position: yup.string().required("Cargo requerido"),
