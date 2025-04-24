@@ -13,8 +13,8 @@ const schema = yup.object().shape({
 const ProjectForm = ({ initialData = [], onNext }) => {
   const {
     register,
-    handleSubmit,
-    setValue,
+    trigger,
+    getValues,
     reset,
     formState: { errors }
   } = useForm({
@@ -23,19 +23,27 @@ const ProjectForm = ({ initialData = [], onNext }) => {
 
   useEffect(() => {
     if (initialData.length > 0) {
-      reset(initialData[0]); // Carga el primer proyecto si hay uno
+      reset(initialData[0]); // precarga si hay datos
     }
   }, [initialData, reset]);
 
-  const onSubmit = (data) => {
-    onNext([data]); // se pasa como array con un proyecto
-  };
+  useEffect(() => {
+    const handleExternalNext = async () => {
+      const isValid = await trigger();
+      if (isValid) {
+        const values = getValues();
+        onNext([values]); // lo enviamos como array
+      }
+    };
+
+    window.handleProjectNext = handleExternalNext;
+  }, [trigger, getValues, onNext]);
 
   return (
     <div className="max-w-2xl mx-auto mt-10 bg-white shadow-lg rounded-xl p-6">
       <h2 className="text-2xl font-bold mb-4 text-center">Proyecto</h2>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mb-6">
+      <div className="space-y-4 mb-6">
         <div>
           <label className="block text-sm font-medium text-gray-700">Nombre del Proyecto</label>
           <input
@@ -72,16 +80,7 @@ const ProjectForm = ({ initialData = [], onNext }) => {
           />
           {errors.link && <p className="text-red-600 text-sm">{errors.link.message}</p>}
         </div>
-
-        <div className="pt-4">
-          <button
-            type="submit"
-            className="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            Siguiente
-          </button>
-        </div>
-      </form>
+      </div>
     </div>
   );
 };

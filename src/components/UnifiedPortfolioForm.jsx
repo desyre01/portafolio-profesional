@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import axios from "axios";
 import PersonalInfoForm from "./PersonalInfoForm";
 import EducationForm from "./EducationForm";
 import WorkExperienceForm from "./WorkExperienceForm";
@@ -7,11 +8,17 @@ import SkillsForm from "./SkillsForm";
 import ContactForm from "./ContactForm";
 import LanguagesForm from "./LanguagesForm";
 import ReferencesForm from "./ReferencesForm";
+import { useNavigate } from "react-router-dom";
 
 const UnifiedPortfolioForm = () => {
+  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState({
-    personalInfo: {},
+    name: "",
+    profession: "",
+    email: "",
+    phone: "",
+    location: "",
     education: [],
     workExperience: [],
     projects: [],
@@ -32,21 +39,63 @@ const UnifiedPortfolioForm = () => {
     7: 'Contacto'
   };
 
-  const handleFormData = (data, section) => {
-    setFormData(prevData => ({
-      ...prevData,
-      [section]: data
-    }));
+  const handleFormData = (data) => {
+    if (currentStep === 0) {
+      setFormData(prevData => ({
+        ...prevData,
+        name: data.name,
+        profession: data.profession,
+        email: data.email,
+        phone: data.phone,
+        location: data.location
+      }));
+    } else {
+      const sectionMap = {
+        1: "education",
+        2: "workExperience",
+        3: "projects",
+        4: "skills",
+        5: "languages",
+        6: "references",
+        7: "contact"
+      };
+      
+      const section = sectionMap[currentStep];
+      if (section) {
+        setFormData(prevData => ({
+          ...prevData,
+          [section]: data
+        }));
+      }
+    }
+  };
+
+  const handleNext = () => {
+    if (window[`handle${steps[currentStep].replace(/\s+/g, '')}Next`]) {
+      window[`handle${steps[currentStep].replace(/\s+/g, '')}Next`]();
+    } else {
+      setCurrentStep(prev => prev + 1);
+    }
   };
 
   const handleSubmit = async () => {
     try {
-      // Aquí puedes agregar la llamada a tu API para guardar los datos
-      console.log('Datos del portafolio a guardar:', formData);
-      alert('¡Portafolio guardado exitosamente!');
+      const requiredFields = ['name', 'profession', 'email', 'phone', 'location'];
+      const missingFields = requiredFields.filter(field => !formData[field]);
+      
+      if (missingFields.length > 0) {
+        alert(`Por favor, completa los siguientes campos obligatorios: ${missingFields.join(', ')}`);
+        setCurrentStep(0);
+        return;
+      }
+
+      const response = await axios.post("http://localhost:5000/api/profile/full", formData);
+      alert("✅ ¡Portafolio guardado exitosamente!");
+      const profileId = response.data._id;
+      navigate(`/profile/${profileId}`);
     } catch (error) {
-      console.error('Error al guardar el portafolio:', error);
-      alert('Error al guardar el portafolio. Por favor, intenta nuevamente.');
+      console.error("❌ Error al guardar el portafolio:", error.response?.data || error.message);
+      alert(`❌ Error al guardar el portafolio: ${error.response?.data?.error || 'Por favor, verifica que todos los campos obligatorios estén completos.'}`);
     }
   };
 
@@ -55,50 +104,59 @@ const UnifiedPortfolioForm = () => {
       <h2 className="text-2xl font-bold mb-4">{steps[currentStep]}</h2>
 
       {currentStep === 0 && (
-        <PersonalInfoForm 
-          onSave={(data) => handleFormData(data, 'personalInfo')}
-          initialData={formData.personalInfo}
+        <PersonalInfoForm
+          onNext={handleFormData}
+          initialData={{
+            name: formData.name,
+            profession: formData.profession,
+            email: formData.email,
+            phone: formData.phone,
+            location: formData.location
+          }}
         />
       )}
       {currentStep === 1 && (
-        <EducationForm 
-          onSave={(data) => handleFormData(data, 'education')}
+        <EducationForm
+          onNext={handleFormData}
           initialData={formData.education}
         />
       )}
       {currentStep === 2 && (
-        <WorkExperienceForm 
-          onSave={(data) => handleFormData(data, 'workExperience')}
+        <WorkExperienceForm
+          onNext={handleFormData}
           initialData={formData.workExperience}
         />
       )}
       {currentStep === 3 && (
-        <ProjectForm 
-          onSave={(data) => handleFormData(data, 'projects')}
+        <ProjectForm
+          onNext={handleFormData}
           initialData={formData.projects}
         />
       )}
       {currentStep === 4 && (
-        <SkillsForm 
-          onSave={(data) => handleFormData(data, 'skills')}
+        <SkillsForm
+          onNext={handleFormData}
           initialData={formData.skills}
         />
       )}
       {currentStep === 5 && (
-        <LanguagesForm 
-          onSave={(data) => handleFormData(data, 'languages')}
+        <LanguagesForm
+          onNext={handleFormData}
           initialData={formData.languages}
         />
       )}
       {currentStep === 6 && (
-        <ReferencesForm 
-          onSave={(data) => handleFormData(data, 'references')}
+        <ReferencesForm
+          onNext={handleFormData}
           initialData={formData.references}
         />
       )}
       {currentStep === 7 && (
-        <ContactForm 
-          onSave={(data) => handleFormData(data, 'contact')}
+        <ContactForm
+          onNext={(data) => {
+            handleFormData(data);
+            handleSubmit();
+          }}
           initialData={formData.contact}
         />
       )}
@@ -106,22 +164,23 @@ const UnifiedPortfolioForm = () => {
       <div className="mt-4 flex justify-between">
         <button
           className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors"
-          onClick={() => setCurrentStep(Math.max(0, currentStep - 1))}
+          onClick={() => setCurrentStep(prev => Math.max(0, prev - 1))}
           disabled={currentStep === 0}
         >
           Anterior
         </button>
+
         {currentStep === 7 ? (
           <button
-            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors"
+            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors"
             onClick={handleSubmit}
           >
             Guardar Portafolio
           </button>
         ) : (
           <button
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
-            onClick={() => setCurrentStep(Math.min(7, currentStep + 1))}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
+            onClick={handleNext}
           >
             Siguiente
           </button>

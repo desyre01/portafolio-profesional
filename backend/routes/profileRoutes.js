@@ -29,6 +29,7 @@ const {
   addSocialsToProfile,
   getSocialsFromProfile,
   markTutorialAsSeen,
+  createFullPortfolio
 } = require("../controllers/profileController");
 
 const router = express.Router();
@@ -57,30 +58,10 @@ const validateExperience = [
 ];
 
 const validateProject = [
-  body("name")
-    .notEmpty().withMessage("El nombre del proyecto es requerido"),
-  body("description")
-    .notEmpty().withMessage("La descripción es requerida"),
-  body("technologies")
-    .custom((value) => {
-      if (!value) return false;
-      if (typeof value === 'string') return value.length > 0;
-      if (Array.isArray(value)) return value.length > 0;
-      return false;
-    })
-    .withMessage("Debe incluir al menos una tecnología"),
-  body("link")
-    .optional({ nullable: true, checkFalsy: true })
-    .custom((value) => {
-      if (!value) return true;
-      try {
-        new URL(value);
-        return true;
-      } catch {
-        return false;
-      }
-    })
-    .withMessage("El enlace debe ser una URL válida")
+  body("name").notEmpty(),
+  body("description").notEmpty(),
+  body("technologies").notEmpty(),
+  body("link").optional({ nullable: true, checkFalsy: true }).isURL().withMessage("URL inválida")
 ];
 
 const validateSkill = [
@@ -95,118 +76,67 @@ const validateLanguage = [
 ];
 
 const validateReference = [
-  body("name").notEmpty().withMessage("El nombre es requerido"),
-  body("relationship").notEmpty().withMessage("La relación es requerida"),
-  body("testimony").notEmpty().withMessage("El testimonio es requerido"),
-  body("imageURL")
-    .optional({ nullable: true, checkFalsy: true })
-    .custom((value) => {
-      if (!value) return true;
-      try {
-        new URL(value);
-        return true;
-      } catch {
-        return false;
-      }
-    })
-    .withMessage("La URL de la imagen debe ser válida o estar vacía")
+  body("name").notEmpty(),
+  body("relationship").notEmpty(),
+  body("testimony").notEmpty(),
+  body("imageURL").optional({ nullable: true, checkFalsy: true }).isURL().withMessage("URL inválida")
 ];
 
 const validateSocials = [
-  body("linkedin")
-    .optional({ nullable: true, checkFalsy: true })
-    .custom((value) => {
-      if (!value) return true;
-      try {
-        new URL(value);
-        return true;
-      } catch {
-        return false;
-      }
-    })
-    .withMessage("LinkedIn debe ser una URL válida o estar vacía"),
-  body("github")
-    .optional({ nullable: true, checkFalsy: true })
-    .custom((value) => {
-      if (!value) return true;
-      try {
-        new URL(value);
-        return true;
-      } catch {
-        return false;
-      }
-    })
-    .withMessage("GitHub debe ser una URL válida o estar vacía"),
-  body("twitter")
-    .optional({ nullable: true, checkFalsy: true })
-    .custom((value) => {
-      if (!value) return true;
-      try {
-        new URL(value);
-        return true;
-      } catch {
-        return false;
-      }
-    })
-    .withMessage("Twitter debe ser una URL válida o estar vacía"),
-  body("portfolio")
-    .optional({ nullable: true, checkFalsy: true })
-    .custom((value) => {
-      if (!value) return true;
-      try {
-        new URL(value);
-        return true;
-      } catch {
-        return false;
-      }
-    })
-    .withMessage("Portfolio debe ser una URL válida o estar vacía")
+  body("linkedin").optional({ nullable: true, checkFalsy: true }).isURL().withMessage("LinkedIn debe ser una URL válida"),
+  body("github").optional({ nullable: true, checkFalsy: true }).isURL().withMessage("GitHub debe ser una URL válida"),
+  body("twitter").optional({ nullable: true, checkFalsy: true }).isURL().withMessage("Twitter debe ser una URL válida"),
+  body("facebook").optional({ nullable: true, checkFalsy: true }).isURL().withMessage("Facebook debe ser una URL válida"),
+  body("instagram").optional({ nullable: true, checkFalsy: true }).isURL().withMessage("Instagram debe ser una URL válida"),
 ];
 
-// Rutas de Perfil
-router.post("/", [...validateProfile], createProfile);
+// PERFIL
+router.post("/", validateProfile, createProfile);
 router.get("/", getAllProfiles);
 router.get("/:id", getProfile);
-router.put("/:id", [...validateProfile], updateProfile);
+router.put("/:id", validateProfile, updateProfile);
 router.delete("/:id", deleteProfile);
 
-// Educación
-router.post("/:id/education", [...validateEducation], addEducationToProfile);
-router.put("/:id/education/:eduId", [...validateEducation], updateEducationInProfile);
+// EDUCACIÓN
+router.post("/:id/education", validateEducation, addEducationToProfile);
+router.put("/:id/education/:eduId", validateEducation, updateEducationInProfile);
 router.delete("/:id/education/:eduId", deleteEducationFromProfile);
 
-// Experiencia
-router.post("/:id/experience", [...validateExperience], addExperienceToProfile);
-router.put("/:id/experience/:expId", [...validateExperience], updateExperienceInProfile);
+// EXPERIENCIA
+router.post("/:id/experience", validateExperience, addExperienceToProfile);
+router.put("/:id/experience/:expId", validateExperience, updateExperienceInProfile);
 router.delete("/:id/experience/:expId", deleteExperienceFromProfile);
 
-// Proyectos
-router.post("/:id/projects", [...validateProject], addProjectToProfile);
-router.put("/:id/projects/:projectId", [...validateProject], updateProjectInProfile);
+// PROYECTOS
+router.post("/:id/projects", validateProject, addProjectToProfile);
+router.put("/:id/projects/:projectId", validateProject, updateProjectInProfile);
 router.delete("/:id/projects/:projectId", deleteProjectFromProfile);
 
-// Habilidades
-router.post("/:id/skills", [...validateSkill], addSkillToProfile);
-router.put("/:id/skills/:skillId", [...validateSkill], updateSkillInProfile);
+// HABILIDADES
+router.post("/:id/skills", validateSkill, addSkillToProfile);
+router.put("/:id/skills/:skillId", validateSkill, updateSkillInProfile);
 router.delete("/:id/skills/:skillId", deleteSkillFromProfile);
 
-// Idiomas
-router.post("/:id/languages", [...validateLanguage], addLanguageToProfile);
-router.put("/:id/languages/:langId", [...validateLanguage], updateLanguageInProfile);
+// IDIOMAS
+router.post("/:id/languages", validateLanguage, addLanguageToProfile);
+router.put("/:id/languages/:langId", validateLanguage, updateLanguageInProfile);
 router.delete("/:id/languages/:langId", deleteLanguageFromProfile);
 
-// Referencias
-router.post("/:id/references", [...validateReference], addReferenceToProfile);
-router.put("/:id/references/:refId", [...validateReference], updateReferenceInProfile);
+// REFERENCIAS
+router.post("/:id/references", validateReference, addReferenceToProfile);
+router.put("/:id/references/:refId", validateReference, updateReferenceInProfile);
 router.delete("/:id/references/:refId", deleteReferenceFromProfile);
 
-// Redes Sociales
+// REDES SOCIALES
 router.get('/:id/socials', getSocialsFromProfile);
 router.post('/:id/socials', validateSocials, addSocialsToProfile);
 router.put('/:id/socials', validateSocials, updateSocialsInProfile);
 router.delete('/:id/socials/:socialType', deleteSocialFromProfile);
 
-// Tutorial
+// TUTORIAL
 router.put("/:id/tutorial", markTutorialAsSeen);
 
-module.exports = router; 
+// GUARDAR PORTAFOLIO COMPLETO
+router.post("/full", createFullPortfolio);
+
+module.exports = router;

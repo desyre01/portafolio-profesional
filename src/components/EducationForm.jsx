@@ -11,24 +11,25 @@ const schema = yup.object().shape({
   description: yup.string().optional()
 });
 
-const EducationForm = ({ initialData = [], onNext }) => {
+const EducationForm = ({ initialData = [], onSave }) => {
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors }
-  } = useForm({ resolver: yupResolver(schema) });
+  } = useForm({
+    resolver: yupResolver(schema),
+    defaultValues: initialData[0] || {}
+  });
 
-  // Podés precargar un solo registro si querés permitir edición
   useEffect(() => {
     if (initialData.length > 0) {
-      reset(initialData[0]); // solo si se edita el primero
+      reset(initialData[0]);
     }
   }, [initialData, reset]);
 
   const onSubmit = (data) => {
-    // Pasa el array de educación al padre (puede ser solo 1 entrada al inicio)
-    onNext([data]); // lo pasamos como array de un solo objeto
+    onSave([data]);
   };
 
   return (
@@ -83,15 +84,6 @@ const EducationForm = ({ initialData = [], onNext }) => {
             rows={4}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
           ></textarea>
-        </div>
-
-        <div className="pt-4">
-          <button
-            type="submit"
-            className="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            Siguiente
-          </button>
         </div>
       </form>
     </div>

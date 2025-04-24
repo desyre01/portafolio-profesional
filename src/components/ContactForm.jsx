@@ -14,7 +14,7 @@ const validationSchema = Yup.object({
   instagram: Yup.string().url("URL inválida"),
 });
 
-const ContactForm = () => {
+const ContactForm = ({ onNext }) => {
   const [initialValues, setInitialValues] = useState({
     linkedin: "",
     github: "",
@@ -47,25 +47,6 @@ const ContactForm = () => {
     fetchSocials();
   }, []);
 
-  const handleSubmit = async (values, { setSubmitting }) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const res = await axios.put(`http://localhost:5000/api/profile/${profileId}/socials`, values);
-      setSocials(res.data.socials);
-    } catch (error) {
-      console.error("❌ Error al guardar redes sociales:", error.response?.data || error.message);
-      setError(error.response?.data?.error || "Error al guardar. Por favor, intente nuevamente.");
-    } finally {
-      setSubmitting(false);
-      setIsLoading(false);
-    }
-  };
-
-  if (isLoading) {
-    return <div className="text-center py-4">Cargando...</div>;
-  }
-
   return (
     <div className="max-w-2xl mx-auto mt-10 bg-white shadow-lg rounded-xl p-6">
       <h2 className="text-2xl font-bold mb-4 text-center">Redes de Contacto</h2>
@@ -80,46 +61,55 @@ const ContactForm = () => {
         enableReinitialize
         initialValues={initialValues}
         validationSchema={validationSchema}
-        onSubmit={handleSubmit}
+        onSubmit={async (values) => {
+          // Guardado manual desde el padre
+          try {
+            const res = await axios.put(`http://localhost:5000/api/profile/${profileId}/socials`, values);
+            setSocials(res.data.socials);
+            if (onNext) onNext(values);
+          } catch (error) {
+            console.error("❌ Error al guardar redes sociales:", error.response?.data || error.message);
+            setError("Error al guardar redes sociales. Intenta nuevamente.");
+          }
+        }}
       >
-        {({ isSubmitting }) => (
-          <Form className="space-y-4">
-            {[
-              { name: "linkedin", icon: <FaLinkedin className="text-blue-600" /> },
-              { name: "github", icon: <FaGithub className="text-gray-800" /> },
-              { name: "twitter", icon: <FaTwitter className="text-blue-400" /> },
-              { name: "facebook", icon: <FaFacebook className="text-blue-800" /> },
-              { name: "instagram", icon: <FaInstagram className="text-pink-600" /> },
-            ].map(({ name, icon }) => (
-              <div key={name}>
-                <label className="block text-sm font-medium text-gray-700 flex items-center gap-2 capitalize mb-1">
-                  {icon} {name}
-                </label>
-                <Field
-                  type="url"
-                  name={name}
-                  placeholder={`https://${name}.com/usuario`}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                />
-                <ErrorMessage 
-                  name={name} 
-                  component="p" 
-                  className="mt-1 text-sm text-red-600" 
-                />
-              </div>
-            ))}
+        {(formik) => {
+          window.handleContactNext = async () => {
+            const isValid = await formik.validateForm();
+            if (Object.keys(isValid).length === 0) {
+              formik.handleSubmit();
+            }
+          };
 
-            <div className="flex gap-2">
-              <button
-                type="submit"
-                disabled={isSubmitting || isLoading}
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex-1 disabled:opacity-50"
-              >
-                {isSubmitting || isLoading ? "Guardando..." : "Guardar Redes Sociales"}
-              </button>
-            </div>
-          </Form>
-        )}
+          return (
+            <Form className="space-y-4">
+              {[
+                { name: "linkedin", icon: <FaLinkedin className="text-blue-600" /> },
+                { name: "github", icon: <FaGithub className="text-gray-800" /> },
+                { name: "twitter", icon: <FaTwitter className="text-blue-400" /> },
+                { name: "facebook", icon: <FaFacebook className="text-blue-800" /> },
+                { name: "instagram", icon: <FaInstagram className="text-pink-600" /> },
+              ].map(({ name, icon }) => (
+                <div key={name}>
+                  <label className="block text-sm font-medium text-gray-700 flex items-center gap-2 capitalize mb-1">
+                    {icon} {name}
+                  </label>
+                  <Field
+                    type="url"
+                    name={name}
+                    placeholder={`https://${name}.com/usuario`}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  />
+                  <ErrorMessage
+                    name={name}
+                    component="p"
+                    className="mt-1 text-sm text-red-600"
+                  />
+                </div>
+              ))}
+            </Form>
+          );
+        }}
       </Formik>
 
       {socials && (

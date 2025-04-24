@@ -11,31 +11,41 @@ const schema = yup.object().shape({
   location: yup.string().required("La ubicación es obligatoria"),
 });
 
-const PersonalInfoForm = ({ initialData, onNext }) => {
+const PersonalInfoForm = ({ initialData = {}, onNext }) => {
   const {
     register,
-    handleSubmit,
+    trigger,
+    getValues,
     reset,
-    formState: { errors },
-  } = useForm({ resolver: yupResolver(schema) });
+    formState: { errors }
+  } = useForm({
+    resolver: yupResolver(schema),
+    defaultValues: initialData
+  });
 
-  // Rellenar el formulario si hay datos previos
+  // Cargar datos previos si existen
   useEffect(() => {
-    if (initialData) {
-      reset(initialData);
-    }
+    reset(initialData);
   }, [initialData, reset]);
 
-  const onSubmit = (data) => {
-    // Envía los datos hacia el componente padre sin guardar aún
-    onNext(data);
-  };
+  // Este método será llamado manualmente desde el padre
+  useEffect(() => {
+    const handleExternalNext = async () => {
+      const isValid = await trigger();
+      if (isValid) {
+        const values = getValues();
+        onNext(values);
+      }
+    };
+
+    window.handlePersonalInfoNext = handleExternalNext;
+  }, [trigger, getValues, onNext]);
 
   return (
     <div className="max-w-2xl mx-auto mt-10 bg-white shadow-lg rounded-xl p-6">
       <h2 className="text-2xl font-bold mb-4 text-center">Información Personal</h2>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <div className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700">Nombre</label>
           <input
@@ -86,16 +96,7 @@ const PersonalInfoForm = ({ initialData, onNext }) => {
           />
           {errors.location && <p className="text-sm text-red-600">{errors.location.message}</p>}
         </div>
-
-        <div className="pt-4">
-          <button
-            type="submit"
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full"
-          >
-            Siguiente
-          </button>
-        </div>
-      </form>
+      </div>
     </div>
   );
 };
