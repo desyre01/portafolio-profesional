@@ -4,83 +4,91 @@ import * as yup from "yup";
 import { useEffect } from "react";
 
 const schema = yup.object().shape({
-  name: yup.string().required("Nombre del proyecto es requerido"),
-  description: yup.string().required("Descripción es requerida"),
-  technologies: yup.string().required("Tecnologías usadas es requerido"),
-  link: yup.string().url("Debe ser un enlace válido").nullable(),
+  name: yup.string().required("El nombre del proyecto es obligatorio"),
+  description: yup.string().required("La descripción es obligatoria"),
+  technologies: yup.string().required("Las tecnologías usadas son obligatorias"),
+  link: yup.string().url("Debe ser un enlace válido").nullable()
 });
 
 const ProjectForm = ({ initialData = [], onNext }) => {
   const {
     register,
-    trigger,
-    getValues,
+    handleSubmit,
     reset,
-    formState: { errors }
+    formState: { errors, isSubmitting }
   } = useForm({
     resolver: yupResolver(schema)
   });
 
   useEffect(() => {
     if (initialData.length > 0) {
-      reset(initialData[0]); // precarga si hay datos
+      reset(initialData[0]);
     }
   }, [initialData, reset]);
 
-  useEffect(() => {
-    const handleExternalNext = async () => {
-      const isValid = await trigger();
-      if (isValid) {
-        const values = getValues();
-        onNext([values]); // lo enviamos como array
-      }
-    };
-
-    window.handleProjectNext = handleExternalNext;
-  }, [trigger, getValues, onNext]);
+  const onSubmit = (data) => {
+    onNext([data]); // ✅ Importante: enviarlo como arreglo
+  };
 
   return (
     <div className="max-w-2xl mx-auto mt-10 bg-white shadow-lg rounded-xl p-6">
-      <h2 className="text-2xl font-bold mb-4 text-center">Proyecto</h2>
+      <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Proyectos</h2>
 
-      <div className="space-y-4 mb-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700">Nombre del Proyecto</label>
+          <label className="block text-sm font-semibold text-gray-700">Nombre del Proyecto</label>
           <input
+            type="text"
             {...register("name")}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+            placeholder="Nombre del proyecto"
+            className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm p-2"
           />
-          {errors.name && <p className="text-red-600 text-sm">{errors.name.message}</p>}
+          {errors.name && <p className="text-sm text-red-600">{errors.name.message}</p>}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Descripción</label>
+          <label className="block text-sm font-semibold text-gray-700">Descripción</label>
           <textarea
             {...register("description")}
-            rows="4"
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+            rows={4}
+            placeholder="Descripción breve del proyecto"
+            className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm p-2"
           />
-          {errors.description && <p className="text-red-600 text-sm">{errors.description.message}</p>}
+          {errors.description && <p className="text-sm text-red-600">{errors.description.message}</p>}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Tecnologías Usadas</label>
+          <label className="block text-sm font-semibold text-gray-700">Tecnologías Usadas</label>
           <input
+            type="text"
             {...register("technologies")}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+            placeholder="Ejemplo: React, Node.js, MongoDB"
+            className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm p-2"
           />
-          {errors.technologies && <p className="text-red-600 text-sm">{errors.technologies.message}</p>}
+          {errors.technologies && <p className="text-sm text-red-600">{errors.technologies.message}</p>}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Enlace (opcional)</label>
+          <label className="block text-sm font-semibold text-gray-700">Enlace (opcional)</label>
           <input
+            type="text"
             {...register("link")}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+            placeholder="https://github.com/mi-proyecto"
+            className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm p-2"
           />
-          {errors.link && <p className="text-red-600 text-sm">{errors.link.message}</p>}
+          {errors.link && <p className="text-sm text-red-600">{errors.link.message}</p>}
         </div>
-      </div>
+
+        <div className="pt-6">
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition disabled:opacity-60"
+          >
+            {isSubmitting ? "Guardando..." : "Siguiente"}
+          </button>
+        </div>
+      </form>
     </div>
   );
 };

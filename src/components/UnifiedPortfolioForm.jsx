@@ -27,6 +27,10 @@ const UnifiedPortfolioForm = () => {
     references: [],
     contact: {}
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState("Guardar Portafolio");
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [createdProfileId, setCreatedProfileId] = useState(null);
 
   const steps = {
     0: 'Información Personal',
@@ -70,14 +74,6 @@ const UnifiedPortfolioForm = () => {
     }
   };
 
-  const handleNext = () => {
-    if (window[`handle${steps[currentStep].replace(/\s+/g, '')}Next`]) {
-      window[`handle${steps[currentStep].replace(/\s+/g, '')}Next`]();
-    } else {
-      setCurrentStep(prev => prev + 1);
-    }
-  };
-
   const handleSubmit = async () => {
     try {
       const requiredFields = ['name', 'profession', 'email', 'phone', 'location'];
@@ -89,103 +85,176 @@ const UnifiedPortfolioForm = () => {
         return;
       }
 
+      setIsSubmitting(true);
+      setSubmitMessage("Guardando...");
+
       const response = await axios.post("http://localhost:5000/api/profile/full", formData);
-      alert("✅ ¡Portafolio guardado exitosamente!");
-      const profileId = response.data._id;
-      navigate(`/profile/${profileId}`);
+
+      setSubmitMessage("¡Guardado exitosamente! ✅");
+
+      setTimeout(() => {
+        setCreatedProfileId(response.data._id);
+        setShowSuccessModal(true);
+        setIsSubmitting(false);
+      }, 1000);
+
     } catch (error) {
       console.error("❌ Error al guardar el portafolio:", error.response?.data || error.message);
       alert(`❌ Error al guardar el portafolio: ${error.response?.data?.error || 'Por favor, verifica que todos los campos obligatorios estén completos.'}`);
+      setIsSubmitting(false);
+      setSubmitMessage("Guardar Portafolio");
+    }
+  };
+
+  const renderForm = () => {
+    switch (currentStep) {
+      case 0:
+        return (
+          <PersonalInfoForm
+            onNext={(data) => {
+              handleFormData(data);
+              setCurrentStep(1);
+            }}
+            initialData={{
+              name: formData.name,
+              profession: formData.profession,
+              email: formData.email,
+              phone: formData.phone,
+              location: formData.location
+            }}
+          />
+        );
+      case 1:
+        return (
+          <EducationForm
+            onNext={(data) => {
+              handleFormData(data);
+              setCurrentStep(2);
+            }}
+            initialData={formData.education}
+          />
+        );
+      case 2:
+        return (
+          <WorkExperienceForm
+            onNext={(data) => {
+              handleFormData(data);
+              setCurrentStep(3);
+            }}
+            initialData={formData.workExperience}
+          />
+        );
+      case 3:
+        return (
+          <ProjectForm
+            onNext={(data) => {
+              handleFormData(data);
+              setCurrentStep(4);
+            }}
+            initialData={formData.projects}
+          />
+        );
+      case 4:
+        return (
+          <SkillsForm
+            onNext={(data) => {
+              handleFormData(data);
+              setCurrentStep(5);
+            }}
+            initialData={formData.skills}
+          />
+        );
+      case 5:
+        return (
+          <LanguagesForm
+            onNext={(data) => {
+              handleFormData(data);
+              setCurrentStep(6);
+            }}
+            initialData={formData.languages}
+          />
+        );
+      case 6:
+        return (
+          <ReferencesForm
+            onNext={(data) => {
+              handleFormData(data);
+              setCurrentStep(7);
+            }}
+            initialData={formData.references}
+          />
+        );
+      case 7:
+        return (
+          <ContactForm
+            onNext={(data) => {
+              handleFormData(data);
+              setTimeout(() => {
+                handleSubmit();
+              }, 100);
+            }}
+            initialData={formData.contact}
+          />
+        );
+      default:
+        return null;
     }
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-4 bg-white rounded shadow">
+    <div className="relative max-w-4xl mx-auto p-4 bg-white rounded shadow">
+
+      {/* Barra de Progreso */}
+      <div className="mb-6">
+        <div className="flex justify-between items-center mb-2">
+          <span className="text-sm font-medium text-gray-700">
+            Paso {currentStep + 1} de 8
+          </span>
+          <span className="text-sm font-medium text-gray-500">
+            {steps[currentStep]}
+          </span>
+        </div>
+        <div className="w-full bg-gray-200 rounded-full h-2">
+          <div
+            className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+            style={{ width: `${((currentStep + 1) / 8) * 100}%` }}
+          ></div>
+        </div>
+      </div>
+
+      {/* Título del Paso */}
       <h2 className="text-2xl font-bold mb-4">{steps[currentStep]}</h2>
 
-      {currentStep === 0 && (
-        <PersonalInfoForm
-          onNext={handleFormData}
-          initialData={{
-            name: formData.name,
-            profession: formData.profession,
-            email: formData.email,
-            phone: formData.phone,
-            location: formData.location
-          }}
-        />
-      )}
-      {currentStep === 1 && (
-        <EducationForm
-          onNext={handleFormData}
-          initialData={formData.education}
-        />
-      )}
-      {currentStep === 2 && (
-        <WorkExperienceForm
-          onNext={handleFormData}
-          initialData={formData.workExperience}
-        />
-      )}
-      {currentStep === 3 && (
-        <ProjectForm
-          onNext={handleFormData}
-          initialData={formData.projects}
-        />
-      )}
-      {currentStep === 4 && (
-        <SkillsForm
-          onNext={handleFormData}
-          initialData={formData.skills}
-        />
-      )}
-      {currentStep === 5 && (
-        <LanguagesForm
-          onNext={handleFormData}
-          initialData={formData.languages}
-        />
-      )}
-      {currentStep === 6 && (
-        <ReferencesForm
-          onNext={handleFormData}
-          initialData={formData.references}
-        />
-      )}
-      {currentStep === 7 && (
-        <ContactForm
-          onNext={(data) => {
-            handleFormData(data);
-            handleSubmit();
-          }}
-          initialData={formData.contact}
-        />
-      )}
+      {/* Render del Formulario Actual */}
+      {renderForm()}
 
-      <div className="mt-4 flex justify-between">
-        <button
-          className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors"
-          onClick={() => setCurrentStep(prev => Math.max(0, prev - 1))}
-          disabled={currentStep === 0}
-        >
-          Anterior
-        </button>
-
-        {currentStep === 7 ? (
+      {/* Botones de Navegación */}
+      <div className="flex justify-between mt-8">
+        {currentStep > 0 && (
           <button
-            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors"
-            onClick={handleSubmit}
+            onClick={() => setCurrentStep(currentStep - 1)}
+            className="px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-semibold transition"
           >
-            Guardar Portafolio
-          </button>
-        ) : (
-          <button
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
-            onClick={handleNext}
-          >
-            Siguiente
+            Anterior
           </button>
         )}
       </div>
+
+      {/* Modal de Éxito */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md mx-4 text-center animate-fadeSlide">
+            <h2 className="text-2xl font-bold text-green-600 mb-4">✅ ¡Portafolio creado exitosamente!</h2>
+            <p className="text-gray-700 mb-6">Tu portafolio ha sido guardado y ahora puedes verlo en tu perfil.</p>
+            <button
+              onClick={() => navigate(`/profile/${createdProfileId}`)}
+              className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition"
+            >
+              Ver mi Perfil
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -2,7 +2,7 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import TutorialTour from "./components/TutorialTour";
-import LandingPage from "./pages/LandingPage";
+import LandingPage from './pages/LandingPage';
 import CreatePortfolio from "./pages/CreatePortfolio";
 import UnifiedPortfolioForm from "./components/UnifiedPortfolioForm";
 import PersonalInfoForm from "./components/PersonalInfoForm";
@@ -16,6 +16,11 @@ import ReferencesForm from "./components/ReferencesForm";
 import ProfileView from "./components/ProfileView";
 import ChatbotWidget from "./components/ChatbotWidget";
 import Footer from "./components/Footer";
+import Home from "./pages/Home";
+import { ProgressBar } from "./components/ProgressBar";
+import AcercaDe from './pages/AcercaDe';
+import CentroAyuda from './pages/CentroAyuda';
+import ContactoSoporte from './pages/ContactoSoporte';
 
 function App() {
   const profileId = localStorage.getItem("profileId");
@@ -34,7 +39,7 @@ function App() {
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/create" element={<CreatePortfolio />} />
                 <Route path="/unified-form" element={<UnifiedPortfolioForm />} />
-                
+                <Route path="/" element={<LandingPage />} />
                 <Route path="/personal-info" element={<PersonalInfoForm />} />
                 <Route path="/education" element={<EducationForm />} />
                 <Route path="/work-experience" element={<WorkExperienceForm />} />
@@ -44,6 +49,10 @@ function App() {
                 <Route path="/languages" element={<LanguagesForm />} />
                 <Route path="/references" element={<ReferencesForm />} />
                 <Route path="/crear-portafolio" element={<UnifiedPortfolioForm />} />
+                <Route path="/home" element={<Home />} />
+                <Route path="/acerca" element={<AcercaDe />} /> 
+                <Route path="/centro-ayuda" element={<CentroAyuda />} />
+                <Route path="/contacto-soporte" element={<ContactoSoporte />} />
 
                 <Route path="/profile/:id" element={<ProfileView />} />
               </Routes>

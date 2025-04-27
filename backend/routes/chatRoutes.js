@@ -1,13 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const { Configuration, OpenAIApi } = require('openai');
+const OpenAI = require('openai');
 
 // Configuración de OpenAI
-const configuration = new Configuration({
+const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
-
-const openai = new OpenAIApi(configuration);
 
 // Ruta para procesar mensajes del chat
 router.post('/', async (req, res) => {
@@ -19,7 +17,7 @@ router.post('/', async (req, res) => {
     }
 
     // Crear el mensaje para el asistente
-    const completion = await openai.createChatCompletion({
+    const completion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [
         {
@@ -36,7 +34,7 @@ router.post('/', async (req, res) => {
     });
 
     // Extraer la respuesta
-    const response = completion.data.choices[0].message.content;
+    const response = completion.choices[0].message.content;
 
     res.json({ response });
   } catch (error) {

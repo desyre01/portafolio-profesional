@@ -4,83 +4,83 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 
 const schema = yup.object().shape({
-  name: yup.string().required("Nombre de la habilidad es requerido"),
-  level: yup.number().min(1).max(5).required("Nivel es requerido"),
-  category: yup.string().required("Categoría es requerida"),
+  name: yup.string().required("El nombre de la habilidad es obligatorio"),
+  level: yup.number().min(1, "El nivel debe ser al menos 1").max(5, "El nivel máximo es 5").required("El nivel es obligatorio"),
+  category: yup.string().required("La categoría es obligatoria")
 });
 
 const SkillsForm = ({ initialData = [], onNext }) => {
   const {
     register,
-    getValues,
-    trigger,
+    handleSubmit,
     reset,
-    formState: { errors }
+    formState: { errors, isSubmitting }
   } = useForm({ resolver: yupResolver(schema) });
 
   const [skills, setSkills] = useState(initialData || []);
 
   useEffect(() => {
     if (initialData.length > 0) {
-      setSkills(initialData);
+      reset(initialData[0]);
     }
+  }, [initialData, reset]);
 
-    // Configura función global para avanzar al siguiente paso validando
-    window.handleSkillsNext = async () => {
-      const isValid = await trigger();
-      if (!isValid) return;
-
-      const newSkill = getValues();
-      const updated = [...skills, newSkill];
-      setSkills(updated);
-      onNext(updated);
-    };
-  }, [initialData, trigger, getValues, onNext, skills]);
+  const onSubmit = (data) => {
+    const updatedSkills = [...skills, data];
+    setSkills(updatedSkills);
+    onNext(updatedSkills);
+  };
 
   return (
     <div className="max-w-2xl mx-auto mt-10 bg-white shadow-lg rounded-xl p-6">
-      <h2 className="text-2xl font-bold mb-4 text-center">Habilidades</h2>
+      <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Habilidades</h2>
 
-      <form className="space-y-4 mb-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700">Nombre</label>
+          <label className="block text-sm font-semibold text-gray-700">Nombre de la Habilidad</label>
           <input
             {...register("name")}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+            placeholder="Ej: React, Liderazgo"
+            className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm p-2"
           />
-          {errors.name && (
-            <p className="text-sm text-red-600">{errors.name.message}</p>
-          )}
+          {errors.name && <p className="text-sm text-red-600">{errors.name.message}</p>}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Categoría</label>
+          <label className="block text-sm font-semibold text-gray-700">Categoría</label>
           <select
             {...register("category")}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+            className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm p-2"
           >
             <option value="">Selecciona una categoría</option>
             <option value="Frontend">Frontend</option>
             <option value="Backend">Backend</option>
             <option value="Soft Skills">Soft Skills</option>
           </select>
-          {errors.category && (
-            <p className="text-sm text-red-600">{errors.category.message}</p>
-          )}
+          {errors.category && <p className="text-sm text-red-600">{errors.category.message}</p>}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Nivel (1-5)</label>
+          <label className="block text-sm font-semibold text-gray-700">Nivel (1-5)</label>
           <input
             type="number"
+            min="1"
+            max="5"
             {...register("level")}
-            min={1}
-            max={5}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+            placeholder="Nivel de 1 a 5"
+            className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm p-2"
           />
-          {errors.level && (
-            <p className="text-sm text-red-600">{errors.level.message}</p>
-          )}
+          {errors.level && <p className="text-sm text-red-600">{errors.level.message}</p>}
+        </div>
+
+        <div className="pt-6">
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition disabled:opacity-60"
+          >
+            {isSubmitting ? "Guardando..." : "Siguiente"}
+          </button>
         </div>
       </form>
     </div>
