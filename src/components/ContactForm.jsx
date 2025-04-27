@@ -11,12 +11,12 @@ const validationSchema = Yup.object({
 });
 
 const ContactForm = ({ onNext, initialData }) => {
-  const initialValues = initialData || {
-    linkedin: "",
-    github: "",
-    twitter: "",
-    facebook: "",
-    instagram: "",
+  const initialValues = {
+    linkedin: initialData?.socials?.linkedin || "",
+    github: initialData?.socials?.github || "",
+    twitter: initialData?.socials?.twitter || "",
+    facebook: initialData?.socials?.facebook || "",
+    instagram: initialData?.socials?.instagram || "",
   };
 
   return (
@@ -27,7 +27,20 @@ const ContactForm = ({ onNext, initialData }) => {
         initialValues={initialValues}
         validationSchema={validationSchema}
         onSubmit={(values) => {
-          onNext(values); // ✅ Solo manda los datos
+          const completeData = {
+            // Mantenemos todos los datos anteriores (name, profession, email, phone, location, education, etc.)
+            ...initialData,
+            // Actualizamos solo el objeto socials
+            socials: {
+              linkedin: values.linkedin,
+              github: values.github,
+              twitter: values.twitter,
+              facebook: values.facebook,
+              instagram: values.instagram
+            }
+          };
+
+          onNext(completeData); // ✅ Ahora sí mandamos todo el portafolio completo
         }}
       >
         {({ isSubmitting }) => (
