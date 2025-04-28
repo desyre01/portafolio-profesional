@@ -21,6 +21,7 @@ import { ProgressBar } from "./components/ProgressBar";
 import AcercaDe from './pages/AcercaDe';
 import CentroAyuda from './pages/CentroAyuda';
 import ContactoSoporte from './pages/ContactoSoporte';
+import Portfolios from './pages/Portfolios';
 
 function App() {
   const profileId = localStorage.getItem("profileId");
@@ -53,6 +54,7 @@ function App() {
                 <Route path="/acerca" element={<AcercaDe />} /> 
                 <Route path="/centro-ayuda" element={<CentroAyuda />} />
                 <Route path="/contacto-soporte" element={<ContactoSoporte />} />
+                <Route path="/ver-portafolios" element={<Portfolios />} />
 
                 <Route path="/profile/:id" element={<ProfileView />} />
               </Routes>

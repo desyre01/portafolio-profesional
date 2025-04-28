@@ -21,7 +21,7 @@ const UnifiedPortfolioForm = () => {
     phone: "",
     location: "",
     education: [],
-    workExperience: [],
+    experience: [],
     projects: [],
     skills: [],
     languages: [],
@@ -58,7 +58,7 @@ const UnifiedPortfolioForm = () => {
       }));
     } else {
       const sectionMap = [
-        null, "education", "workExperience", "projects",
+        null, "education", "experience", "projects",
         "skills", "languages", "references"
       ];
       const section = sectionMap[currentStep];
@@ -74,7 +74,26 @@ const UnifiedPortfolioForm = () => {
   const handleSubmit = async () => {
     try {
       setIsSubmitting(true);
-      const res = await axios.post("http://localhost:5000/api/profile/full", formData);
+      const { name, profession, email, phone, location, education, experience, projects, skills, languages, references, socials } = formData;
+      
+      const dataToSend = {
+        personalInfo: {
+          name,
+          profession,
+          email,
+          phone,
+          location
+        },
+        education,
+        workExperience: experience,
+        projects,
+        skills,
+        languages,
+        references,
+        contact: socials
+      };
+
+      const res = await axios.post("http://localhost:5000/api/profile/full", dataToSend);
       alert("✅ Portafolio guardado exitosamente!");
       navigate(`/profile/${res.data._id}`);
     } catch (error) {
@@ -99,7 +118,7 @@ const UnifiedPortfolioForm = () => {
 
       {currentStep === 0 && <PersonalInfoForm initialData={formData} onNext={(data) => { handleFormData(data); setCurrentStep(1); }} />}
       {currentStep === 1 && <EducationForm initialData={formData.education} onNext={(data) => { handleFormData(data); setCurrentStep(2); }} />}
-      {currentStep === 2 && <WorkExperienceForm initialData={formData.workExperience} onNext={(data) => { handleFormData(data); setCurrentStep(3); }} />}
+      {currentStep === 2 && <WorkExperienceForm initialData={formData.experience} onNext={(data) => { handleFormData(data); setCurrentStep(3); }} />}
       {currentStep === 3 && <ProjectForm initialData={formData.projects} onNext={(data) => { handleFormData(data); setCurrentStep(4); }} />}
       {currentStep === 4 && <SkillsForm initialData={formData.skills} onNext={(data) => { handleFormData(data); setCurrentStep(5); }} />}
       {currentStep === 5 && <LanguagesForm initialData={formData.languages} onNext={(data) => { handleFormData(data); setCurrentStep(6); }} />}

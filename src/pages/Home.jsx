@@ -1,11 +1,12 @@
 import { useNavigate } from 'react-router-dom';
-import { FaBriefcase } from 'react-icons/fa'; 
+import { FaBriefcase } from 'react-icons/fa';
 
 export default function Home() {
   const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-400 to-cyan-300 flex flex-col">
+      
       {/* Barra de navegación */}
       <nav className="bg-white shadow-md py-4 px-8 flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-800">Inicio</h1>
@@ -19,16 +20,13 @@ export default function Home() {
 
       {/* Contenido principal */}
       <main className="flex-1">
+        
         {/* Sección Bienvenida */}
         <div className="flex flex-col items-center justify-center mt-16 mb-10">
           <div className="bg-white border border-blue-100 rounded-xl shadow-lg p-6 md:p-8 max-w-xl text-center animate-fadeSlide">
-            
-            {/* Icono arriba del título */}
             <div className="flex justify-center mb-4">
               <FaBriefcase className="text-6xl text-blue-400" />
             </div>
-
-            {/* Título y subtítulo */}
             <h1 className="text-4xl font-bold text-gray-800 mb-3 whitespace-nowrap">
               Bienvenido a tu Portafolio
             </h1>
@@ -72,11 +70,12 @@ export default function Home() {
             Ver Portafolios
           </button>
         </section>
+
       </main>
 
       {/* Footer */}
       <footer className="bg-white py-6 text-center text-gray-600">
-        {/* Puedes agregar aquí contenido del pie de página */}
+        {/* Puedes agregar algo aquí si quieres */}
       </footer>
     </div>
   );
